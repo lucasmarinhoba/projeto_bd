@@ -12,11 +12,11 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 0 / 13 fases · 0 / 69 subfases
+**Progresso geral:** 1 / 13 fases · 5 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
-| 0 | Setup do ambiente | 1 | A | 0.1 · 0.2 · 0.3 · 0.4 · 0.5 | ⬜ |
+| 0 | Setup do ambiente | 1 | A | ~~0.1~~ · ~~0.2~~ · ~~0.3~~ · ~~0.4~~ · ~~0.5~~ | ✅ |
 | 1 | Modelagem, DER e 3FN | 1–2 | A | 1.1 · 1.2 · 1.3 · 1.4 · 1.5 | ⬜ |
 | 2 | DDL e integridade declarativa | 2–3 | A | 2.1 · 2.2 · 2.3 · 2.4 · 2.5 · 2.6 | ⬜ |
 | 3 | Seed base | 3 | B | 3.1 · 3.2 · 3.3 · 3.4 · 3.5 | ⬜ |
@@ -73,7 +73,7 @@ flowchart LR
 
 ### 0.1 Regras invioláveis (valem para todas as fases)
 
-1. **Uma fase por vez, uma subfase por vez.** Ao concluir cada subfase, marcar seus checkboxes e atualizar o **Painel de progresso**. Ao final da fase: rodar os critérios de aceite, mostrar a evidência (saída do terminal), fazer commit `faseN: descrição` e só então avançar.
+1. **Uma fase por vez, uma subfase por vez.** Ao concluir cada subfase, marcar seus checkboxes e atualizar o **Painel de progresso**. Ao final da fase: executar a **🔍 Sessão de revisão** da fase (todos os comandos listados), mostrar a evidência (saída real do terminal), fazer commit `faseN: descrição` e só então avançar.
 2. **SQL puro** em arquivos `.sql` versionados. **Proibido ORM** (SQLAlchemy ORM, Hibernate, Prisma, Sequelize, Django ORM, etc.). Na aplicação, apenas o driver (psycopg 3) com **queries parametrizadas**.
 3. A aplicação **não valida** conflito de horário, limite de reservas, capacidade, duração, horário de funcionamento nem existência de usuário/sala. Ela só converte o formato da entrada (texto → data/hora) e **repassa a mensagem de erro do banco**.
 4. **Scripts idempotentes:** `make reset` recria o banco do zero, sem intervenção manual.
@@ -91,9 +91,10 @@ Você vai implementar o projeto descrito em plano_implementacao_reservas.md.
 Leia o documento inteiro antes de começar. Trabalhe fase por fase e, dentro
 de cada fase, subfase por subfase, na ordem. Ao concluir cada subfase, marque
 seus checkboxes e atualize o Painel de progresso.
-Ao fim de cada fase: (1) execute os critérios de aceite e mostre a saída,
-(2) crie docs/estudo/faseN.md, (3) faça commit "faseN: ...", (4) pare e
-resuma em 5 linhas o que foi feito antes de seguir.
+Ao fim de cada fase: (1) execute TODOS os comandos da "🔍 Sessão de revisão"
+da fase e mostre a saída real no terminal, (2) crie docs/estudo/faseN.md,
+(3) faça commit "faseN: ...", (4) pare e resuma em 5 linhas o que foi feito
+antes de seguir.
 Restrições: PostgreSQL 16, SQL puro, sem ORM, nenhuma regra de negócio na
 aplicação. Comece pela Fase 0.
 ```
@@ -153,7 +154,11 @@ reservas/
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
+├── .gitattributes              # garante LF em *.sh e *.sql para o container Linux
 ├── Makefile
+├── scripts/
+│   ├── reset.sh                # roda 99_reset.sql e 0*.sql (usado por make reset ou direto via docker compose)
+│   └── test.sh                 # roda tests/test_*.sql (usado por make test ou direto via docker compose)
 ├── sql/
 │   ├── 00_setup.sql            # schema, extensões, roles dono, timezone
 │   ├── 01_tipos.sql            # ENUMs e DOMAINs
@@ -215,7 +220,18 @@ reservas/
 
 ## 4. Fases de implementação
 
-> **Formato de cada fase:** cabeçalho (objetivo, dia, quem lidera, dependências) → **subfases** com checkboxes (cada uma termina em um resultado verificável, marcado com ▶) → material de referência (código, tabelas) → **critério de aceite** → **cola de estudo**. A última subfase de cada fase é sempre o *fechamento* (aceite + cola + commit).
+> **Formato de cada fase:** cabeçalho (objetivo, dia, quem lidera, dependências) → **subfases** com checkboxes (cada uma termina em um resultado verificável, marcado com ▶) → material de referência (código, tabelas) → **critério de aceite** → **🔍 Sessão de revisão (comandos exatos + saída esperada)** → **cola de estudo**. A última subfase de cada fase é sempre o *fechamento* (rodar a sessão de revisão + cola + commit).
+
+**Equivalência de comandos (com ou sem `make`, Windows PowerShell / Linux / macOS):**
+
+| Ação | Com `make` | Sem `make` (direto via Docker Compose — funciona no PowerShell) |
+|---|---|---|
+| Subir o banco | `make up` | `docker compose up -d --wait` |
+| Recriar tudo (`reset`) | `make reset` | `docker compose exec -T db sh /projeto/scripts/reset.sh` |
+| Rodar suíte de testes | `make test` | `docker compose exec -T db sh /projeto/scripts/test.sh` |
+| Abrir `psql` interativo | `make psql` | `docker compose exec db psql -U postgres -d reservas` |
+| Rodar 1 query de verificação | — | `docker compose exec -T db psql -U postgres -d reservas -c "SQL"` |
+| Rodar 1 arquivo `.sql` | — | `docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -f /projeto/caminho.sql` |
 
 ### Fase 0 — Setup (Dia 1)
 
@@ -223,10 +239,10 @@ reservas/
 
 **Subfases**
 
-- [ ] **0.1 Repositório** — `git init`, `.gitignore` (inclui `.env`), `.env.example` (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `APP_DB_USER`, `APP_DB_PASSWORD`). ▶ primeiro commit.
-- [ ] **0.2 Docker** — `docker-compose.yml` com `postgres:16`, volume nomeado e porta 5432. ▶ `make up` sobe o container.
-- [ ] **0.3 Makefile** — alvos `up`, `down`, `reset`, `psql`, `test`, `app`. O `reset` roda **primeiro** `sql/99_reset.sql` e depois `sql/0*.sql` em ordem (o `99_reset.sql` **não** pode entrar no glob, senão apagaria tudo no fim). ▶ `make reset` executa em banco vazio.
-- [ ] **0.4 `sql/00_setup.sql`**
+- [x] **0.1 Repositório** — `git init`, `.gitignore` (inclui `.env`), `.env.example` (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `APP_DB_USER`, `APP_DB_PASSWORD`). ▶ primeiro commit.
+- [x] **0.2 Docker** — `docker-compose.yml` com `postgres:16`, volume nomeado e porta 5432. ▶ `make up` sobe o container.
+- [x] **0.3 Makefile** — alvos `up`, `down`, `reset`, `psql`, `test`, `app`. O `reset` roda **primeiro** `sql/99_reset.sql` e depois `sql/0*.sql` em ordem (o `99_reset.sql` **não** pode entrar no glob, senão apagaria tudo no fim). ▶ `make reset` executa em banco vazio.
+- [x] **0.4 `sql/00_setup.sql`**
   - `CREATE SCHEMA reservas;`
   - `CREATE EXTENSION IF NOT EXISTS btree_gist;`
   - role dono `reservas_owner` (**NOSUPERUSER**), dona de todos os objetos. Roles são **globais ao cluster** (não somem com o `DROP DATABASE`): criar dentro de um bloco `DO` com `IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = ...)` para manter o script idempotente;
@@ -234,11 +250,39 @@ reservas/
   - `SET search_path = reservas, public;` nos scripts seguintes.
   
   ▶ `SHOW timezone;` correto.
-- [ ] **0.5 Fechamento** — critério de aceite, `docs/estudo/fase0.md`, commit `fase0: setup`.
+- [x] **0.5 Fechamento** — critério de aceite, `docs/estudo/fase0.md`, commit `fase0: setup`.
 
 **Critério de aceite**
 - `make reset` termina sem erro em banco vazio e também em banco já populado.
 - `make psql` conecta e `SHOW timezone;` retorna `America/Fortaleza`.
+
+#### 🔍 Sessão de revisão — Fase 0
+
+Execute os comandos abaixo na ordem. A fase só é considerada concluída se **todos** passarem:
+
+```powershell
+# 1) Subir o container e aguardar healthcheck
+docker compose up -d --wait
+
+# 2) Rodar o reset pela 1ª vez (banco vazio) e pela 2ª vezseguida (prova de idempotência)
+docker compose exec -T db sh /projeto/scripts/reset.sh
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 3) Conferir timezone e search_path padrão da sessão
+docker compose exec -T db psql -U postgres -d reservas -c "SHOW timezone;" -c "SHOW search_path;"
+
+# 4) Conferir se a role reservas_owner existe e NÃO é superusuário (rolsuper = f)
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT rolname, rolsuper, rolcanlogin FROM pg_roles WHERE rolname = 'reservas_owner';"
+
+# 5) Conferir se o schema reservas pertence a reservas_owner e se a extensão btree_gist está instalada
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT nspname, pg_catalog.pg_get_userbyid(nspowner) AS owner FROM pg_namespace WHERE nspname = 'reservas';" -c "SELECT extname FROM pg_extension WHERE extname = 'btree_gist';"
+```
+
+**Resultado esperado na revisão:**
+- Passos 1 e 2 terminam com `==> reset concluido sem erros` nas duas execuções.
+- Passo 3 retorna `America/Fortaleza` e `reservas, public`.
+- Passo 4 retorna `reservas_owner | f | f`.
+- Passo 5 retorna `reservas | reservas_owner` e `btree_gist`.
 
 **Cola de estudo:** o que é `btree_gist` e por que ele é necessário (ver Fase 2); por que o dono dos objetos não é superusuário.
 
@@ -278,6 +322,21 @@ Tabelas: `usuario`, `sala`, `recurso`, `sala_recurso` (N:N, com `quantidade`), `
 6. discussão de `periodo tstzrange` versus duas colunas `inicio`/`fim`.
 
 **Critério de aceite:** todo atributo de cada tabela aparece na análise de dependências; o DER lógico bate 1:1 com o DDL que será escrito.
+
+#### 🔍 Sessão de revisão — Fase 1
+
+```powershell
+# 1) Verificar existência e tamanho não-vazio dos entregáveis de modelagem
+Get-Item docs/DER_conceitual.png, docs/DER_logico.md, docs/modelagem_3fn.md, docs/estudo/fase1.md | Select-Object Name, Length
+
+# 2) Verificar se as 6 tabelas estão documentadas no DER lógico e na análise de 3FN
+Select-String -Path docs/DER_logico.md -Pattern "USUARIO|SALA|RECURSO|SALA_RECURSO|RESERVA|LOG_RESERVA"
+Select-String -Path docs/modelagem_3fn.md -Pattern "1FN|2FN|3FN|ON DELETE|tstzrange"
+```
+
+**Resultado esperado na revisão:**
+- Todos os 4 arquivos existem e têm conteúdo (`Length > 0`).
+- As 6 entidades (`USUARIO`, `SALA`, `RECURSO`, `SALA_RECURSO`, `RESERVA`, `LOG_RESERVA`) aparecem no DER lógico e na justificativa de 1FN/2FN/3FN + tabela de `ON DELETE`.
 
 **Cola de estudo:** explicar 1FN/2FN/3FN com exemplos do próprio esquema; por que `sala_recurso.quantidade` depende da chave inteira.
 
@@ -396,6 +455,28 @@ CREATE TABLE log_reserva (
 - reserva sobreposta a uma **CANCELADA** (deve ser **aceita**);
 - reservas adjacentes 08:00–10:00 e 10:00–12:00 (devem ser **aceitas**: efeito do `[)`).
 
+#### 🔍 Sessão de revisão — Fase 2
+
+```powershell
+# 1) Recriar o banco com 01_tipos.sql e 02_tabelas.sql
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 2) Listar tipos/domínios e as 6 tabelas criadas no schema reservas
+docker compose exec -T db psql -U postgres -d reservas -c "\dT+ reservas.*" -c "\dt+ reservas.*"
+
+# 3) Inspecionar constraints de reserva (confirmar ck_periodo_valido, ck_cancelamento_coerente e sem_conflito EXCLUDE USING gist)
+docker compose exec -T db psql -U postgres -d reservas -c "\d reservas.reserva"
+
+# 4) Executar a suíte de testes de integridade declarativa (testa todos os 8 itens do critério de aceite)
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -f /projeto/tests/test_integridade.sql
+```
+
+**Resultado esperado na revisão:**
+- `\dT+` lista os 3 ENUMs (`status_reserva`, `tipo_sala`, `tipo_usuario`) e 2 DOMAINs (`email_t`, `qtd_positiva`).
+- `\dt+` lista as 6 tabelas com dono `reservas_owner`.
+- `\d reservas.reserva` exibe `"sem_conflito" EXCLUDE USING gist (sala_id WITH =, periodo WITH &&) WHERE (status = 'ATIVA'::status_reserva)`.
+- `test_integridade.sql` imprime `NOTICE: OK ...` para cada uma das 8 verificações e termina com código 0 (deixando as tabelas limpas ao final via `ROLLBACK`).
+
 **Cola de estudo:** como o EXCLUDE funciona; por que `btree_gist`; por que `WHERE (status='ATIVA')`; por que `[)`; ENUM versus DOMAIN versus tabela de domínio.
 
 ---
@@ -413,6 +494,27 @@ CREATE TABLE log_reserva (
 - [ ] **3.5 Fechamento** — critério de aceite, `docs/estudo/fase3.md`, commit `fase3: seed base`.
 
 **Critério de aceite:** `SELECT count(*)` por tabela confere com o mínimo; relatório de `sala` agrupado por `tipo`.
+
+#### 🔍 Sessão de revisão — Fase 3
+
+```powershell
+# 1) Recriar o banco e carregar o seed base (06_seed_base.sql)
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 2) Verificar contagens mínimas (>= 20 salas, >= 8 recursos, >= 60 sala_recurso, >= 150 usuários)
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT 'sala' AS tabela, count(*) FROM sala UNION ALL SELECT 'recurso', count(*) FROM recurso UNION ALL SELECT 'sala_recurso', count(*) FROM sala_recurso UNION ALL SELECT 'usuario', count(*) FROM usuario;"
+
+# 3) Distribuição de salas por tipo e usuários por tipo
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT tipo, count(*), min(capacidade), max(capacidade) FROM sala GROUP BY tipo;" -c "SELECT tipo, count(*) FROM usuario GROUP BY tipo ORDER BY tipo;"
+
+# 4) Conferir os 4 usuários de demonstração fixos (IDs 1..4) e a sala de demonstração (ID 5)
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT id, matricula, nome, tipo FROM usuario WHERE id IN (1,2,3,4) ORDER BY id;" -c "SELECT id, codigo, nome, tipo, capacidade FROM sala WHERE id = 5;"
+```
+
+**Resultado esperado na revisão:**
+- `sala >= 20`, `recurso >= 8`, `sala_recurso >= 60`, `usuario >= 150`.
+- Salas divididas entre `SALA` e `LABORATORIO`; usuários divididos entre `ALUNO`, `PROFESSOR` e `ADMIN`.
+- Usuários de demonstração (IDs 1 a 4) e sala de demonstração (ID 5) presentes e identificados.
 
 **Cola de estudo:** `setseed`/`random()`; por que o seed é reprodutível.
 
@@ -556,6 +658,21 @@ CREATE TRIGGER trg_regras_reserva
 
 > **Por que o `FOR NO KEY UPDATE`?** Sem ele, duas sessões do mesmo usuário contam "2 reservas", ambas inserem e o usuário termina com 4 (anomalia de *write skew*). O lock serializa as reservas do mesmo usuário. `NO KEY UPDATE` (e não `UPDATE`) evita conflito com o `FOR KEY SHARE` que o PostgreSQL toma na checagem da FK. Alternativa: `pg_advisory_xact_lock`. Isso será **demonstrado na Fase 9**.
 
+#### 🔍 Sessão de revisão — Fase 4A (Triggers)
+
+```powershell
+# 1) Aplicar 03_triggers.sql e verificar se os 2 triggers estão ligados na tabela reserva
+docker compose exec -T db sh /projeto/scripts/reset.sh
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT tgname, tgenabled FROM pg_trigger WHERE tgrelid = 'reservas.reserva'::regclass AND NOT tgisinternal ORDER BY tgname;"
+
+# 2) Teste rápido de auditoria (INSERT + CANCELAMENTO) e de regra (duração > 4h → RS005) dentro de transação revertida
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -c "BEGIN; INSERT INTO reserva (usuario_id, sala_id, periodo, qtd_participantes, finalidade) VALUES (1, 1, tstzrange((current_date+5+time '08:00') AT TIME ZONE 'America/Fortaleza', (current_date+5+time '10:00') AT TIME ZONE 'America/Fortaleza', '[)'), 10, 'Teste 4A'); SELECT operacao, dados_novos->>'status' AS status_novo FROM log_reserva ORDER BY id DESC LIMIT 1; ROLLBACK;"
+```
+
+**Resultado esperado na revisão 4A:**
+- `pg_trigger` lista `trg_audit_reserva` e `trg_regras_reserva` com `tgenabled = O` (ativos).
+- A inserção de teste gera um registro `INSERT | ATIVA` em `log_reserva` e o `ROLLBACK` limpa o teste.
+
 #### 4B. Functions (`04_functions.sql`)
 
 **`criar_reserva(p_usuario_id bigint, p_sala_id int, p_inicio timestamptz, p_fim timestamptz, p_qtd int, p_finalidade text DEFAULT NULL) RETURNS bigint`**
@@ -613,6 +730,23 @@ Notas obrigatórias para o código final e a oral:
 
 **Critério de aceite da Fase 4:** `tests/test_regras.sql` com **um teste por SQLSTATE** (RS001…RS014), cada um usando bloco `DO $$ ... EXCEPTION WHEN SQLSTATE 'RS0xx' THEN RAISE NOTICE 'OK RS0xx'; END $$;`, mais: reserva válida criada; log com `INSERT`; cancelamento gera log `CANCELAMENTO` com `dados_antigos` e `dados_novos`. `make test` imprime todos os OK.
 
+#### 🔍 Sessão de revisão — Fase 4B (Functions + Regras completas)
+
+```powershell
+# 1) Recriar o banco com triggers e functions
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 2) Conferir as 3 functions criadas, seus donos (reservas_owner) e SECURITY DEFINER (prosecdef = t)
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT proname, pg_get_userbyid(proowner) AS owner, prosecdef, provolatile FROM pg_proc WHERE pronamespace = 'reservas'::regnamespace AND proname IN ('criar_reserva','cancelar_reserva','taxa_ocupacao') ORDER BY proname;"
+
+# 3) Rodar a suíte de testes de regras (valida RS001 a RS014 + criação + cancelamento + auditoria + taxa_ocupacao)
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -f /projeto/tests/test_regras.sql
+```
+
+**Resultado esperado na revisão 4B:**
+- As 3 functions existem, pertencem a `reservas_owner` e têm `prosecdef = t` (`taxa_ocupacao` com `provolatile = s` = `STABLE`).
+- `test_regras.sql` imprime `NOTICE: OK RS001` até `NOTICE: OK RS014`, além de `OK criacao/auditoria/cancelamento/taxa_ocupacao`, sem nenhum erro não capturado.
+
 **Cola de estudo:** BEFORE vs AFTER; `OLD`/`NEW`/`TG_OP`; `SECURITY DEFINER` e por que fixar `search_path`; function vs procedure; o que um `RAISE EXCEPTION` desfaz; `session_user` vs `current_user`.
 
 ---
@@ -649,6 +783,25 @@ A aplicação faz apenas `WHERE sala_id = %s AND dia = %s ORDER BY hora_inicio`.
 - As três consultas retornam dados coerentes após o seed (Fase 6).
 - `SELECT taxa_ocupacao(s, m)` == coluna `taxa_ocupacao_pct` da matview, para uma amostra de pares (sala, mês).
 - `REFRESH MATERIALIZED VIEW CONCURRENTLY mv_ocupacao_mensal;` funciona.
+
+#### 🔍 Sessão de revisão — Fase 5
+
+```powershell
+# 1) Recriar o banco com 05_views.sql e listar views e materialized views
+docker compose exec -T db sh /projeto/scripts/reset.sh
+docker compose exec -T db psql -U postgres -d reservas -c "\dv+ reservas.*" -c "\dm+ reservas.*"
+
+# 2) Testar REFRESH MATERIALIZED VIEW CONCURRENTLY (exige o índice UNIQUE em (sala_id, mes))
+docker compose exec -T db psql -U postgres -d reservas -c "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_ocupacao_mensal;"
+
+# 3) (Executar na subfase 5.5, após a Fase 6) Verificar se taxa_ocupacao(sala, mes) coincide 100% com mv_ocupacao_mensal
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT count(*) AS divergencias FROM mv_ocupacao_mensal mv WHERE mv.taxa_ocupacao_pct <> taxa_ocupacao(mv.sala_id, mv.mes) LIMIT 20;"
+```
+
+**Resultado esperado na revisão:**
+- `\dv+` lista `v_agenda_dia` e `v_reservas_usuario` (e `v_salas_recursos` se criada); `\dm+` lista `mv_ocupacao_mensal`.
+- `REFRESH MATERIALIZED VIEW CONCURRENTLY` executa sem erro.
+- A consulta de divergências entre `mv_ocupacao_mensal.taxa_ocupacao_pct` e `taxa_ocupacao(sala_id, mes)` retorna `0`.
 
 **Cola de estudo:** view vs matview; dado "velho" na matview; por que `CONCURRENTLY` exige UNIQUE; por que a agenda é view e a ocupação é matview.
 
@@ -719,6 +872,26 @@ WHERE c.r_sel < 0.22;   -- AJUSTAR p até count(*) >= 12000
 - `ANALYZE reserva; REFRESH MATERIALIZED VIEW mv_ocupacao_mensal;`
 - `log_reserva` tem ≥ 1 linha por reserva.
 
+#### 🔍 Sessão de revisão — Fase 6
+
+```powershell
+# 1) Recriar o banco com a carga massiva (07_seed_massa.sql) — os triggers e o EXCLUDE ficam ATIVOS durante toda a carga
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 2) Conferir volume total (>= 10.000), divisão por status e registros no log_reserva
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT status, count(*) FROM reserva GROUP BY ROLLUP(status);" -c "SELECT operacao, count(*) FROM log_reserva GROUP BY ROLLUP(operacao);"
+
+# 3) Prova matemática de ZERO conflitos de horário entre reservas ATIVAS (deve retornar 0)
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT count(*) AS conflitos FROM reserva a JOIN reserva b ON a.sala_id = b.sala_id AND a.id < b.id AND a.periodo && b.periodo AND a.status = 'ATIVA' AND b.status = 'ATIVA';"
+
+# 4) Prova de que nenhum usuário tem > 3 reservas futuras ativas (deve retornar 0) e que a sala/usuários de demo estão livres no futuro
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT count(*) AS violacoes_limite FROM (SELECT usuario_id FROM reserva WHERE status = 'ATIVA' AND lower(periodo) > now() GROUP BY usuario_id HAVING count(*) > 3) t;" -c "SELECT count(*) AS reservas_futuras_demo FROM reserva WHERE lower(periodo) > now() AND (sala_id = 5 OR usuario_id IN (1,2,3,4));"
+```
+
+**Resultado esperado na revisão:**
+- Total de reservas `>= 10.000` (alvo `>= 12.000`), com ~8% `CANCELADA` e `log_reserva >= count(reserva)`.
+- `conflitos = 0`, `violacoes_limite = 0` e `reservas_futuras_demo = 0`.
+
 **Cola de estudo:** `generate_series`, `CROSS JOIN LATERAL`, `random()` e `setseed`; por que a geração é conflito-free; por que passado não conta como "futuro".
 
 ---
@@ -754,6 +927,20 @@ Cada consulta no `.md` segue o modelo:
 5. **Técnicas usadas** e por quê.
 
 **Critério de aceite:** as 5 consultas rodam em < 2 s; a matriz acima cobre os cinco requisitos; os resultados são coerentes entre si (ex.: horas de Q4 batem com a matview).
+
+#### 🔍 Sessão de revisão — Fase 7
+
+```powershell
+# 1) Executar todas as 5 consultas analíticas com cronômetro (\timing on)
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -c "\timing on" -f /projeto/analise/consultas_analiticas.sql
+
+# 2) Verificar se analise/consultas_analiticas.md documenta Q1..Q5 com pergunta, SQL, saída e interpretação
+Select-String -Path analise/consultas_analiticas.md -Pattern "^## Q[1-5]|HAVING|FILTER|RANK|DENSE_RANK|LAG"
+```
+
+**Resultado esperado na revisão:**
+- As 5 consultas executam sem erro, retornam linhas coerentes e cada uma leva `< 2000 ms`.
+- `analise/consultas_analiticas.md` contém as 5 seções completas.
 
 **Cola de estudo:** `WHERE` vs `HAVING`; window vs `GROUP BY`; `RANK` vs `DENSE_RANK` vs `ROW_NUMBER`; CTE inlined a partir do PG12; `FILTER`.
 
@@ -791,6 +978,24 @@ Cada consulta no `.md` segue o modelo:
 > Com apenas 10 mil linhas o planner pode preferir `Seq Scan` mesmo com índice. Para evidência mais forte, criar um banco de teste separado (`reservas_bench`) com ~500 mil reservas apenas para o experimento, e **documentar essa escolha**.
 
 **Critério de aceite:** dois pares antes/depois com prints, plano diferente e análise escrita em linguagem própria dos alunos.
+
+#### 🔍 Sessão de revisão — Fase 8
+
+```powershell
+# 1) Conferir se os 2 índices extras estão criados após o reset e ver o tamanho de cada um
+docker compose exec -T db sh /projeto/scripts/reset.sh
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT indexname, pg_size_pretty(pg_relation_size(indexname::regclass)) AS tamanho, indexdef FROM pg_indexes WHERE schemaname = 'reservas' AND tablename = 'reserva' ORDER BY indexname;"
+
+# 2) Conferir os arquivos de evidência antes/depois e a análise escrita
+Get-Item analise/explain/antes_1.txt, analise/explain/depois_1.txt, analise/explain/antes_2.txt, analise/explain/depois_2.txt, analise/explain/analise.md | Select-Object Name, Length
+
+# 3) Confirmar mudança de plano (Seq Scan no antes -> Index Scan / Index Only Scan / Bitmap Index Scan no depois)
+Select-String -Path analise/explain/antes_*.txt, analise/explain/depois_*.txt -Pattern "Seq Scan|Index Scan|Index Only Scan|Bitmap Index Scan|Execution Time"
+```
+
+**Resultado esperado na revisão:**
+- Os 2 índices aparecem em `pg_indexes` (além da PK e do `sem_conflito`).
+- Os arquivos `antes_1.txt`/`depois_1.txt` e `antes_2.txt`/`depois_2.txt` mostram a transição de `Seq Scan` para scan via índice e redução de tempo/buffers.
 
 **Cola de estudo:** ler um `EXPLAIN ANALYZE` linha a linha; B-tree vs GiST; índice parcial; índice sobre expressão (`lower(periodo)`); custo × benefício.
 
@@ -836,6 +1041,27 @@ Arquivos: `concorrencia/roteiro.md`, `sessao_A.sql`, `sessao_B.sql`, `teste_conc
 - Rodar 10 vezes; todas devem passar.
 
 **Critério de aceite:** `roteiro.md` com comandos, saídas reais e conclusão; teste automatizado verde; o aluno consegue reproduzir o Cenário 1 sozinho, em ≤ 3 minutos.
+
+#### 🔍 Sessão de revisão — Fase 9
+
+```powershell
+# 1) Recriar o banco limpo para os testes de concorrência
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 2) Rodar o teste automatizado de concorrência (20 threads simultâneas disputando o mesmo horário + corrida do limite de 3 reservas)
+python concorrencia/teste_concorrencia.py
+
+# 3) Conferir no banco que restou exatamente 1 reserva ativa no slot disputado e que ninguém ultrapassou 3 reservas futuras
+docker compose exec -T db psql -U postgres -d reservas -c "SELECT count(*) AS violacoes_limite FROM (SELECT usuario_id FROM reserva WHERE status = 'ATIVA' AND lower(periodo) > now() GROUP BY usuario_id HAVING count(*) > 3) t;"
+
+# 4) Verificar se os scripts das sessões A e B e o roteiro documentado existem
+Get-Item concorrencia/roteiro.md, concorrencia/sessao_A.sql, concorrencia/sessao_B.sql, concorrencia/teste_concorrencia.py | Select-Object Name, Length
+```
+
+**Resultado esperado na revisão:**
+- `python concorrencia/teste_concorrencia.py` executa todas as baterias com `1 sucesso` e `19 conflitos RS010` por bateria, terminando com código 0.
+- `violacoes_limite = 0`.
+- `concorrencia/roteiro.md` contém a saída real do `pg_stat_activity` (`wait_event_type = Lock`, `wait_event = transactionid`).
 
 **Cola de estudo:** READ COMMITTED e snapshot por comando; por que o EXCLUDE funciona em qualquer nível de isolamento; MVCC (leitores não bloqueiam escritores); `40P01` (deadlock) e `40001` (serialização).
 
@@ -897,6 +1123,28 @@ ALTER ROLE app_reservas SET timezone = 'America/Fortaleza';
 E uma conferência declarativa:
 `SELECT has_table_privilege('app_reservas','reservas.reserva','SELECT');` → `f`; `SELECT has_function_privilege('app_reservas','reservas.criar_reserva(bigint,integer,timestamptz,timestamptz,integer,text)','EXECUTE');` → `t`.
 
+#### 🔍 Sessão de revisão — Fase 10
+
+```powershell
+# 1) Rodar o reset 2x seguidas (prova que 09_roles.sql é idempotente)
+docker compose exec -T db sh /projeto/scripts/reset.sh
+docker compose exec -T db sh /projeto/scripts/reset.sh
+
+# 2) Executar o script de teste de segurança conectado COMO app_reservas
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U app_reservas -d reservas -f /projeto/tests/test_seguranca.sql
+
+# 3) Prova direta de bloqueio: tentar ler a tabela reserva como app_reservas (DEVE falhar com permission denied)
+docker compose exec -T db psql -U app_reservas -d reservas -c "SELECT * FROM reserva LIMIT 1;"
+
+# 4) Prova direta de permissão: ler a view v_agenda_dia e chamar taxa_ocupacao como app_reservas (DEVEM funcionar)
+docker compose exec -T db psql -U app_reservas -d reservas -c "SELECT * FROM v_agenda_dia LIMIT 3;" -c "SELECT taxa_ocupacao(1, current_date);"
+```
+
+**Resultado esperado na revisão:**
+- Passo 2 imprime `NOTICE: OK ...` para todas as checagens de privilégio (`has_table_privilege = f` para as 6 tabelas; `has_table_privilege = t` para as views; `has_function_privilege = t` para as 3 functions).
+- Passo 3 falha com `ERROR: permission denied for table reserva`.
+- Passo 4 retorna linhas de `v_agenda_dia` e o valor numérico de `taxa_ocupacao`.
+
 **Cola de estudo:** princípio do menor privilégio; `SECURITY DEFINER` e seus riscos; `search_path` hijacking; por que revogar `EXECUTE` de `PUBLIC`; limitação: a app informa o `usuario_id` (sem autenticação real). Evolução possível: Row-Level Security.
 
 ---
@@ -948,6 +1196,24 @@ def chamar(conn, sql, params=()):
 - `grep -rniE "capacidade|conflito|limite|duracao" app/` não encontra **lógica** de negócio (apenas textos de menu).
 - Nenhum `f"...{variavel}..."` dentro de SQL (sempre `%s` + parâmetros).
 
+#### 🔍 Sessão de revisão — Fase 11
+
+```powershell
+# 1) Garantir que o código da aplicação não usa ORM nem interpola variáveis em SQL
+Select-String -Path app/*.py -Pattern "sqlalchemy|peewee|tortoise|django|prisma|f"".*SELECT|f'.*SELECT|\.format\(.*SELECT"
+
+# 2) Inspecionar ocorrências de palavras de negócio em app/ (só podem aparecer em rótulos de menu/input, nunca em if/validação)
+Select-String -Path app/*.py -Pattern "capacidade|conflito|limite|duracao"
+
+# 3) Teste ponta a ponta não-interativo da CLI (ou script de smoke test que exercita as 4 opções + erro RS010 + cancelamento)
+python app/main.py --smoke-test
+```
+
+**Resultado esperado na revisão:**
+- Passo 1 não retorna nenhuma linha (zero ORM, zero SQL interpolado).
+- Passo 2 mostra que a aplicação não faz `if` de regra de negócio.
+- Passo 3 executa as 4 funcionalidades conectando como `app_reservas`: cria reserva → lista na agenda → tenta criar conflitante (exibe `✖ Conflito de horário...` vindo do banco) → cancela → lista ocupação mensal.
+
 **Cola de estudo:** por que a app não valida nada; SQL injection e queries parametrizadas; autocommit × transação implícita; o que mudaria na app se a duração máxima passasse a ser 3 h (resposta: nada).
 
 ---
@@ -965,6 +1231,30 @@ def chamar(conn, sql, params=()):
 - [ ] **12.5 Congelamento** — rodar `make reset && make test` do zero em uma máquina limpa (ou container novo); criar tag git `entrega`. ▶ tag criada.
 
 **Critério de aceite:** repositório clonado em máquina limpa sobe com dois comandos e todos os testes passam.
+
+#### 🔍 Sessão de revisão — Fase 12 (Revisão geral de entrega)
+
+```powershell
+# 1) Reset completo do zero + execução de toda a suíte de testes (integridade, regras e segurança)
+docker compose exec -T db sh /projeto/scripts/reset.sh
+docker compose exec -T db sh /projeto/scripts/test.sh
+
+# 2) Teste de concorrência automatizado + smoke test da aplicação CLI
+python concorrencia/teste_concorrencia.py
+python app/main.py --smoke-test
+
+# 3) Conferir se todas as 13 colas de estudo e documentos obrigatórios existem
+Get-ChildItem docs/estudo/fase*.md, docs/DER_*, docs/modelagem_3fn.md, docs/decisoes.md, docs/roteiro_apresentacao.md, README.md | Select-Object Name, Length
+
+# 4) Verificar que o repositório está limpo e sem arquivos sensíveis (.env fora do git)
+git status --short
+git ls-files .env
+```
+
+**Resultado esperado na revisão:**
+- `reset.sh`, `test.sh`, `teste_concorrencia.py` e `app/main.py --smoke-test` terminam todos com código 0.
+- Todos os documentos e colas de estudo estão presentes.
+- `git ls-files .env` retorna vazio.
 
 ---
 

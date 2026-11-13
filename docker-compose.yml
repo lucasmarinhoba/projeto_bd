@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    container_name: reservas_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reservas}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dev_password}
+      TZ: America/Fortaleza
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata_reservas:/var/lib/postgresql/data
+      # repositório montado (somente leitura) para rodar scripts e usar \i /projeto/... no psql
+      - ./:/projeto:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-reservas}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata_reservas:
