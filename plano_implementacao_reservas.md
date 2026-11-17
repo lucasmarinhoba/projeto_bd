@@ -12,12 +12,12 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 1 / 13 fases · 5 / 69 subfases
+**Progresso geral:** 2 / 13 fases · 10 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
 | 0 | Setup do ambiente | 1 | A | ~~0.1~~ · ~~0.2~~ · ~~0.3~~ · ~~0.4~~ · ~~0.5~~ | ✅ |
-| 1 | Modelagem, DER e 3FN | 1–2 | A | 1.1 · 1.2 · 1.3 · 1.4 · 1.5 | ⬜ |
+| 1 | Modelagem, DER e 3FN | 1–2 | A | ~~1.1~~ · ~~1.2~~ · ~~1.3~~ · ~~1.4~~ · ~~1.5~~ | ✅ |
 | 2 | DDL e integridade declarativa | 2–3 | A | 2.1 · 2.2 · 2.3 · 2.4 · 2.5 · 2.6 | ⬜ |
 | 3 | Seed base | 3 | B | 3.1 · 3.2 · 3.3 · 3.4 · 3.5 | ⬜ |
 | 4A | Triggers | 3–4 | A | 4A.1 · 4A.2 · 4A.3 · 4A.4 | ⬜ |
@@ -294,11 +294,11 @@ docker compose exec -T db psql -U postgres -d reservas -c "SELECT nspname, pg_ca
 
 **Subfases**
 
-- [ ] **1.1 DER conceitual** — `docs/DER_conceitual.png` (brModelo ou draw.io): entidades, atributos, cardinalidades. ▶ imagem no repositório.
-- [ ] **1.2 DER lógico** — `docs/DER_logico.md`: Mermaid `erDiagram` completo, com PK, FK e tipos. ▶ bate 1:1 com o esqueleto da Fase 2.
-- [ ] **1.3 Análise de 3FN** — `docs/modelagem_3fn.md`, itens 1–6 abaixo para **cada** tabela. ▶ todo atributo aparece em alguma dependência funcional.
-- [ ] **1.4 Tabela de `ON DELETE`** — justificativa por FK (tabela pronta na Fase 2) copiada para `docs/modelagem_3fn.md`. ▶ 5 FKs justificadas.
-- [ ] **1.5 Fechamento** — critério de aceite, `docs/estudo/fase1.md`, commit `fase1: modelagem`.
+- [x] **1.1 DER conceitual** — `docs/DER_conceitual.png` (brModelo ou draw.io): entidades, atributos, cardinalidades. ▶ imagem no repositório.
+- [x] **1.2 DER lógico** — `docs/DER_logico.md`: Mermaid `erDiagram` completo, com PK, FK e tipos. ▶ bate 1:1 com o esqueleto da Fase 2.
+- [x] **1.3 Análise de 3FN** — `docs/modelagem_3fn.md`, itens 1–6 abaixo para **cada** tabela. ▶ todo atributo aparece em alguma dependência funcional.
+- [x] **1.4 Tabela de `ON DELETE`** — justificativa por FK (tabela pronta na Fase 2) copiada para `docs/modelagem_3fn.md`. ▶ 5 FKs justificadas.
+- [x] **1.5 Fechamento** — critério de aceite, `docs/estudo/fase1.md`, commit `fase1: modelagem`.
 
 **Entidades e relacionamentos**
 
