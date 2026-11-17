@@ -31,4 +31,13 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | `DOMAIN qtd_positiva` e `DOMAIN email_t` | `CHECK` repetido em cada coluna | Centraliza a definição da regra (`VALUE > 0` e regex de e-mail) e garante uniformidade entre `sala`, `sala_recurso` e `reserva` |
 | Constraint `ck_periodo_valido` exigindo `lower_inc(periodo) AND NOT upper_inc(periodo)` | Aceitar qualquer tipo de limite (`[]`, `()`, `(]`) | Força no nível do DDL que toda inserção (mesmo manual fora das functions) normalize o intervalo para `[)` |
 
+## Fase 3 — Seed base
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Usuários de demonstração fixos nos IDs `1..4` e sala de demonstração no ID `5` (`A-105`) | Selecionar IDs aleatórios a cada demonstração | Permite roteiros reproduzíveis para as Fases 4, 9 e 11 e permite que a carga futura (Fase 6) isole esses IDs para não gerar falso bloqueio (RS008/RS010) |
+| Separação entre `06_seed_base.sql` (cadastros) e `07_seed_massa.sql` (reservas) | Um único arquivo de seed | Permite testar triggers, functions e views antes da carga massiva sem sujar as tabelas com milhares de linhas prematuramente |
+| Nomes gerados com `setseed(0.42)` + `random()` e matrículas/e-mails sequenciais (`idx`) | Gerar e-mails derivados do nome | Mantém a aleatoriedade reproduzível dos nomes sem risco de violar `UNIQUE` em homônimos |
+
+
 

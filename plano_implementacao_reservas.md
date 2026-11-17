@@ -12,14 +12,14 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 3 / 13 fases · 16 / 69 subfases
+**Progresso geral:** 4 / 13 fases · 21 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
 | 0 | Setup do ambiente | 1 | A | ~~0.1~~ · ~~0.2~~ · ~~0.3~~ · ~~0.4~~ · ~~0.5~~ | ✅ |
 | 1 | Modelagem, DER e 3FN | 1–2 | A | ~~1.1~~ · ~~1.2~~ · ~~1.3~~ · ~~1.4~~ · ~~1.5~~ | ✅ |
 | 2 | DDL e integridade declarativa | 2–3 | A | ~~2.1~~ · ~~2.2~~ · ~~2.3~~ · ~~2.4~~ · ~~2.5~~ · ~~2.6~~ | ✅ |
-| 3 | Seed base | 3 | B | 3.1 · 3.2 · 3.3 · 3.4 · 3.5 | ⬜ |
+| 3 | Seed base | 3 | B | ~~3.1~~ · ~~3.2~~ · ~~3.3~~ · ~~3.4~~ · ~~3.5~~ | ✅ |
 | 4A | Triggers | 3–4 | A | 4A.1 · 4A.2 · 4A.3 · 4A.4 | ⬜ |
 | 4B | Functions e testes de regras | 4–5 | B | 4B.1 · 4B.2 · 4B.3 · 4B.4 · 4B.5 | ⬜ |
 | 5 | Views e materialized view | 5 | B | 5.1 · 5.2 · 5.3 · 5.4 · 5.5 | ⬜ |
@@ -487,11 +487,11 @@ docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -f /pr
 
 **Subfases** (`06_seed_base.sql`, determinístico)
 
-- [ ] **3.1 Salas** — **≥ 20 salas** (≈ 12 `SALA` + ≈ 8 `LABORATORIO`), capacidades variadas (20 a 80). Reservar uma **sala de demonstração** (ex.: `id = 5`) que a carga futura da Fase 6 não ocupa. ▶ `count(*)` ≥ 20.
-- [ ] **3.2 Recursos e `sala_recurso`** — **≥ 8 recursos** (Projetor, Quadro branco, Ar-condicionado, Computadores, Lousa digital, Bancadas, Sistema de som, Kit de robótica); `sala_recurso` com ≥ 60 linhas (laboratórios com `Computadores` e quantidade). ▶ contagens conferem.
-- [ ] **3.3 Usuários gerados** — **≥ 150 usuários** (≈ 120 ALUNO, 25 PROFESSOR, 5 ADMIN) com nomes brasileiros plausíveis gerados a partir de arrays + `generate_series`. ▶ contagem por `tipo`.
-- [ ] **3.4 Usuários de demonstração fixos** — ids conhecidos, listados no README: 1 ADMIN, 1 PROFESSOR, 2 ALUNOS. ▶ `SELECT` pelos ids retorna os 4.
-- [ ] **3.5 Fechamento** — critério de aceite, `docs/estudo/fase3.md`, commit `fase3: seed base`.
+- [x] **3.1 Salas** — **≥ 20 salas** (≈ 12 `SALA` + ≈ 8 `LABORATORIO`), capacidades variadas (20 a 80). Reservar uma **sala de demonstração** (ex.: `id = 5`) que a carga futura da Fase 6 não ocupa. ▶ `count(*)` ≥ 20.
+- [x] **3.2 Recursos e `sala_recurso`** — **≥ 8 recursos** (Projetor, Quadro branco, Ar-condicionado, Computadores, Lousa digital, Bancadas, Sistema de som, Kit de robótica); `sala_recurso` com ≥ 60 linhas (laboratórios com `Computadores` e quantidade). ▶ contagens conferem.
+- [x] **3.3 Usuários gerados** — **≥ 150 usuários** (≈ 120 ALUNO, 25 PROFESSOR, 5 ADMIN) com nomes brasileiros plausíveis gerados a partir de arrays + `generate_series`. ▶ contagem por `tipo`.
+- [x] **3.4 Usuários de demonstração fixos** — ids conhecidos, listados no README: 1 ADMIN, 1 PROFESSOR, 2 ALUNOS. ▶ `SELECT` pelos ids retorna os 4.
+- [x] **3.5 Fechamento** — critério de aceite, `docs/estudo/fase3.md`, commit `fase3: seed base`.
 
 **Critério de aceite:** `SELECT count(*)` por tabela confere com o mínimo; relatório de `sala` agrupado por `tipo`.
 
