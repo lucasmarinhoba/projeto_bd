@@ -23,3 +23,12 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Exclusão lógica (`ativo`/`ativa = false`) + `ON DELETE RESTRICT` em `usuario`, `sala`, `recurso` e `reserva` | `ON DELETE CASCADE` ou exclusão física | Preserva histórico de ocupação, relatórios mensais e trilha de auditoria em `log_reserva`; `CASCADE` fica restrito a `sala_recurso → sala` |
 | Trilha `log_reserva` com snapshots `dados_antigos`/`dados_novos` em `jsonb` | Colunas normalizadas por campo auditado | Desnormalização *append-only* intencional: congela o estado completo da tupla no instante do evento e resiste a futuras mudanças de schema |
 
+## Fase 2 — DDL e integridade declarativa
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Uso explícito de `SET ROLE reservas_owner` nos scripts `01_tipos.sql` e `02_tabelas.sql` | Executar tudo como `postgres` e alterar dono depois | Garante que todos os tipos, domínios, tabelas e sequências nasçam com dono `reservas_owner` (`NOSUPERUSER`) sem comandos manuais de `ALTER OWNER` |
+| `DOMAIN qtd_positiva` e `DOMAIN email_t` | `CHECK` repetido em cada coluna | Centraliza a definição da regra (`VALUE > 0` e regex de e-mail) e garante uniformidade entre `sala`, `sala_recurso` e `reserva` |
+| Constraint `ck_periodo_valido` exigindo `lower_inc(periodo) AND NOT upper_inc(periodo)` | Aceitar qualquer tipo de limite (`[]`, `()`, `(]`) | Força no nível do DDL que toda inserção (mesmo manual fora das functions) normalize o intervalo para `[)` |
+
+

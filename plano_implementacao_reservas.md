@@ -12,13 +12,13 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 2 / 13 fases · 10 / 69 subfases
+**Progresso geral:** 3 / 13 fases · 16 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
 | 0 | Setup do ambiente | 1 | A | ~~0.1~~ · ~~0.2~~ · ~~0.3~~ · ~~0.4~~ · ~~0.5~~ | ✅ |
 | 1 | Modelagem, DER e 3FN | 1–2 | A | ~~1.1~~ · ~~1.2~~ · ~~1.3~~ · ~~1.4~~ · ~~1.5~~ | ✅ |
-| 2 | DDL e integridade declarativa | 2–3 | A | 2.1 · 2.2 · 2.3 · 2.4 · 2.5 · 2.6 | ⬜ |
+| 2 | DDL e integridade declarativa | 2–3 | A | ~~2.1~~ · ~~2.2~~ · ~~2.3~~ · ~~2.4~~ · ~~2.5~~ · ~~2.6~~ | ✅ |
 | 3 | Seed base | 3 | B | 3.1 · 3.2 · 3.3 · 3.4 · 3.5 | ⬜ |
 | 4A | Triggers | 3–4 | A | 4A.1 · 4A.2 · 4A.3 · 4A.4 | ⬜ |
 | 4B | Functions e testes de regras | 4–5 | B | 4B.1 · 4B.2 · 4B.3 · 4B.4 · 4B.5 | ⬜ |
@@ -348,12 +348,12 @@ Select-String -Path docs/modelagem_3fn.md -Pattern "1FN|2FN|3FN|ON DELETE|tstzra
 
 **Subfases**
 
-- [ ] **2.1 Tipos** (`01_tipos.sql`) — 3 ENUMs e 2 DOMAINs. ▶ `\dT` lista os 5 tipos.
-- [ ] **2.2 Tabelas de cadastro** (`02_tabelas.sql`) — `usuario`, `sala`, `recurso`, `sala_recurso`, com PK, FK, UNIQUE, NOT NULL, CHECK e `COMMENT ON`. ▶ `\d` de cada tabela confere com o DER lógico.
-- [ ] **2.3 Tabela `reserva`** — `ck_periodo_valido`, `ck_cancelamento_coerente` e **`EXCLUDE sem_conflito`**. ▶ inserção sobreposta falha com `23P01`.
-- [ ] **2.4 Tabela `log_reserva`** — append-only, FK `RESTRICT`. ▶ tabela criada.
-- [ ] **2.5 Testes de integridade** (`tests/test_integridade.sql`) — um caso por item do critério de aceite. ▶ todos os casos com o resultado esperado.
-- [ ] **2.6 Fechamento** — `docs/estudo/fase2.md`, commit `fase2: ddl e integridade`.
+- [x] **2.1 Tipos** (`01_tipos.sql`) — 3 ENUMs e 2 DOMAINs. ▶ `\dT` lista os 5 tipos.
+- [x] **2.2 Tabelas de cadastro** (`02_tabelas.sql`) — `usuario`, `sala`, `recurso`, `sala_recurso`, com PK, FK, UNIQUE, NOT NULL, CHECK e `COMMENT ON`. ▶ `\d` de cada tabela confere com o DER lógico.
+- [x] **2.3 Tabela `reserva`** — `ck_periodo_valido`, `ck_cancelamento_coerente` e **`EXCLUDE sem_conflito`**. ▶ inserção sobreposta falha com `23P01`.
+- [x] **2.4 Tabela `log_reserva`** — append-only, FK `RESTRICT`. ▶ tabela criada.
+- [x] **2.5 Testes de integridade** (`tests/test_integridade.sql`) — um caso por item do critério de aceite. ▶ todos os casos com o resultado esperado.
+- [x] **2.6 Fechamento** — `docs/estudo/fase2.md`, commit `fase2: ddl e integridade`.
 
 **Tipos** (`01_tipos.sql`)
 
