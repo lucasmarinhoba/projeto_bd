@@ -56,6 +56,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Grade de meses em `mv_ocupacao_mensal` via `CROSS JOIN` (últimos 12 meses + meses futuros presentes em `reserva`) | `GROUP BY` direto apenas sobre linhas existentes em `reserva` | Garante que salas com `0` reservas em determinado mês também apareçam no relatório mensal com `taxa_ocupacao_pct = 0.00` |
 | View auxiliar opcional `v_salas_recursos` | Permitir que a CLI faça `SELECT` direto na tabela `sala` | Mantém o princípio do menor privilégio (`app_reservas` não acessa nenhuma tabela diretamente) e facilita a escolha de `sala_id` na CLI |
 
+## Fase 6 — Carga massiva
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Manter `trg_regras_reserva`, `trg_audit_reserva` e `sem_conflito` **ativos** durante toda a carga | Usar `DISABLE TRIGGER ALL` para carregar mais rápido | A carga leva apenas ~1 segundo com os triggers ativos e comprova que todas as > 12.000 linhas obedecem às regras de negócio e geram auditoria |
+| Calibrar `r_sel < 0.25` sobre `51.100` slots disjuntos (≈ 12.700 históricas + 120 futuras) | `r_sel < 0.22` | Garante folga confortável acima do requisito de 10.000 reservas mesmo após ~8% de cancelamentos (que permanecem na tabela como `CANCELADA`) |
+| Excluir sala `5` e usuários `1..4` das reservas futuras do seed massivo | Incluir todos os cadastros na carga futura | Mantém os usuários e a sala de demonstração com contagem limpa no futuro para as demonstrações de concorrência (Fase 9) e CLI (Fase 11) |
+
+
 
 
 

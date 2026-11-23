@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 6 / 13 fases (Fases 0 a 5 concluídas; 4A + 4B = Fase 4) · 35 / 69 subfases
+**Progresso geral:** 7 / 13 fases (Fases 0 a 6 concluídas; 4A + 4B = Fase 4) · 40 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -23,7 +23,7 @@
 | 4A | Triggers | 3–4 | A | ~~4A.1~~ · ~~4A.2~~ · ~~4A.3~~ · ~~4A.4~~ | ✅ |
 | 4B | Functions e testes de regras | 4–5 | B | ~~4B.1~~ · ~~4B.2~~ · ~~4B.3~~ · ~~4B.4~~ · ~~4B.5~~ | ✅ |
 | 5 | Views e materialized view | 5 | B | ~~5.1~~ · ~~5.2~~ · ~~5.3~~ · ~~5.4~~ · ~~5.5~~ | ✅ |
-| 6 | Carga massiva (≥ 10 mil) | 6 | A | 6.1 · 6.2 · 6.3 · 6.4 · 6.5 | ⬜ |
+| 6 | Carga massiva (≥ 10 mil) | 6 | A | ~~6.1~~ · ~~6.2~~ · ~~6.3~~ · ~~6.4~~ · ~~6.5~~ | ✅ |
 | 7 | Consultas analíticas | 7 | A + B | 7.1 · 7.2 · 7.3 · 7.4 · 7.5 · 7.6 | ⬜ |
 | 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | 8.1 · 8.2 · 8.3 · 8.4 · 8.5 | ⬜ |
 | 9 | Concorrência e transações | 8 | A | 9.1 · 9.2 · 9.3 · 9.4 · 9.5 | ⬜ |
@@ -813,11 +813,11 @@ docker compose exec -T db psql -U postgres -d reservas -c "SELECT count(*) AS di
 
 **Subfases** (`07_seed_massa.sql`)
 
-- [ ] **6.1 Histórico (passado)** — candidatas `sala × dia × slot` dos últimos 365 dias, sorteio com `random() < p` (esqueleto abaixo). ▶ inserção sem erro de trigger/EXCLUDE.
-- [ ] **6.2 Ajuste de volume** — calibrar `p` até **≥ 12.000** linhas. ▶ `count(*)` ≥ 12.000.
-- [ ] **6.3 Reservas futuras** — ~100 nos próximos 30 dias, ≤ 3 por usuário, **excluindo os usuários de demonstração e a sala de demonstração** (Fase 3), para que as demos da Fase 9 não esbarrem em RS008/RS010 indevidos. ▶ nenhum usuário com > 3 futuras.
-- [ ] **6.4 Cancelamentos** — ~8% via `UPDATE` para `CANCELADA` com `cancelada_em` coerente. ▶ `log_reserva` contém `CANCELAMENTO`.
-- [ ] **6.5 Validação e fechamento** — queries do critério de aceite, `ANALYZE`, `REFRESH`, `docs/estudo/fase6.md`, commit `fase6: carga massiva`. Em seguida, fechar a subfase **5.5**.
+- [x] **6.1 Histórico (passado)** — candidatas `sala × dia × slot` dos últimos 365 dias, sorteio com `random() < p` (esqueleto abaixo). ▶ inserção sem erro de trigger/EXCLUDE.
+- [x] **6.2 Ajuste de volume** — calibrar `p` até **≥ 12.000** linhas. ▶ `count(*)` ≥ 12.000.
+- [x] **6.3 Reservas futuras** — ~100 nos próximos 30 dias, ≤ 3 por usuário, **excluindo os usuários de demonstração e a sala de demonstração** (Fase 3), para que as demos da Fase 9 não esbarrem em RS008/RS010 indevidos. ▶ nenhum usuário com > 3 futuras.
+- [x] **6.4 Cancelamentos** — ~8% via `UPDATE` para `CANCELADA` com `cancelada_em` coerente. ▶ `log_reserva` contém `CANCELAMENTO`.
+- [x] **6.5 Validação e fechamento** — queries do critério de aceite, `ANALYZE`, `REFRESH`, `docs/estudo/fase6.md`, commit `fase6: carga massiva`. Em seguida, fechar a subfase **5.5**.
 
 **Estratégia (conflito-free por construção)**
 - Gerar candidatas = `sala × dia × slot`, onde os slots são disjuntos por sala (início às 07, 09, 11, 13, 15, 17, 19 h; duração de 60 ou 120 min). Assim **nunca há sobreposição**, e o EXCLUDE funciona como verificação, não como obstáculo.
