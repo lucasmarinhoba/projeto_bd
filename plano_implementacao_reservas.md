@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 10 / 13 fases (Fases 0 a 9 concluídas; 4A + 4B = Fase 4) · 56 / 69 subfases
+**Progresso geral:** 11 / 13 fases (Fases 0 a 10 concluídas; 4A + 4B = Fase 4) · 60 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -27,7 +27,7 @@
 | 7 | Consultas analíticas | 7 | A + B | ~~7.1~~ · ~~7.2~~ · ~~7.3~~ · ~~7.4~~ · ~~7.5~~ · ~~7.6~~ | ✅ |
 | 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | ~~8.1~~ · ~~8.2~~ · ~~8.3~~ · ~~8.4~~ · ~~8.5~~ | ✅ |
 | 9 | Concorrência e transações | 8 | A | ~~9.1~~ · ~~9.2~~ · ~~9.3~~ · ~~9.4~~ · ~~9.5~~ | ✅ |
-| 10 | Segurança (`app_reservas`) | 8 | A | 10.1 · 10.2 · 10.3 · 10.4 | ⬜ |
+| 10 | Segurança (`app_reservas`) | 8 | A | ~~10.1~~ · ~~10.2~~ · ~~10.3~~ · ~~10.4~~ | ✅ |
 | 11 | Aplicação CLI | 9 | B | 11.1 · 11.2 · 11.3 · 11.4 | ⬜ |
 | 12 | Documentação e ensaio oral | 10 | A + B | 12.1 · 12.2 · 12.3 · 12.4 · 12.5 | ⬜ |
 
@@ -1073,10 +1073,10 @@ Get-Item concorrencia/roteiro.md, concorrencia/sessao_A.sql, concorrencia/sessao
 
 **Subfases**
 
-- [ ] **10.1 `09_roles.sql`** — criação idempotente da role (bloco `DO` com `IF NOT EXISTS`, pois roles sobrevivem ao `DROP DATABASE`), `REVOKE`s e `GRANT`s. Senha vinda do `.env`, nunca fixa no script versionado. ▶ `make reset` roda 2× sem erro.
-- [ ] **10.2 Revisão de donos e `SECURITY DEFINER`** — conferir os 3 "pontos que a IA não pode esquecer" (inclui `taxa_ocupacao`). ▶ `\df+` mostra dono `reservas_owner` e *Security* `definer`.
-- [ ] **10.3 `tests/test_seguranca.sql`** — tabela de tentativas + conferência declarativa, ligado ao `make test`. ▶ todas as linhas com o resultado esperado.
-- [ ] **10.4 Fechamento** — `docs/estudo/fase10.md`, commit `fase10: seguranca`.
+- [x] **10.1 `09_roles.sql`** — criação idempotente da role (bloco `DO` com `IF NOT EXISTS`, pois roles sobrevivem ao `DROP DATABASE`), `REVOKE`s e `GRANT`s. Senha vinda do `.env`, nunca fixa no script versionado. ▶ `make reset` roda 2× sem erro.
+- [x] **10.2 Revisão de donos e `SECURITY DEFINER`** — conferir os 3 "pontos que a IA não pode esquecer" (inclui `taxa_ocupacao`). ▶ `\df+` mostra dono `reservas_owner` e *Security* `definer`.
+- [x] **10.3 `tests/test_seguranca.sql`** — tabela de tentativas + conferência declarativa, ligado ao `make test`. ▶ todas as linhas com o resultado esperado.
+- [x] **10.4 Fechamento** — `docs/estudo/fase10.md`, commit `fase10: seguranca`.
 
 ```sql
 -- 09_roles.sql (executado pelo dono/administrador)

@@ -88,6 +88,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | `teste_concorrencia.py` detecta se `app_reservas` já existe/tem `EXECUTE` (usando `POSTGRES_USER` antes da Fase 10 e `app_reservas` da Fase 10 em diante) | Fixar `app_reservas` já na Fase 9 (quebrando antes da Fase 10) ou fixar `postgres` para sempre | Permite rodar `teste_concorrencia.py` imediatamente na Fase 9 e automaticamente validar o caminho completo com `app_reservas` após a Fase 10 e na entrega final |
 | Selecionar usuários sem reservas futuras em `teste_concorrencia.py` (sem `DELETE` em `reserva`) | Apagar reservas criadas no teste com `DELETE` | Respeita a restrição `ON DELETE RESTRICT` de `log_reserva → reserva` e mantém a integridade *append-only* da auditoria |
 
+## Fase 10 — Segurança (`app_reservas`)
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Senha de `app_reservas` injetada via `-v app_password` pelo `scripts/reset.sh` (do `.env`) | Gravar senha em texto claro dentro de `sql/09_roles.sql` | Evita vazar credenciais no repositório Git e mantém `09_roles.sql` idempotente com `CREATE/ALTER ROLE` |
+| Revogar `EXECUTE` de `PUBLIC` em **todas** as funções do schema `reservas` (inclusive triggers) | Conceder `GRANT EXECUTE` só nas 3 funções sem `REVOKE` | Remove permissão implícita de `PUBLIC` que o PostgreSQL concede por padrão ao criar qualquer função |
+| Incluir `v_salas_recursos` nos `GRANT SELECT` de `app_reservas` | Deixar a CLI consultar apenas IDs numéricos cegos | Mantém o isolamento total das tabelas base (`sala`, `recurso`, `sala_recurso`) enquanto apoia o menu da Fase 11 |
+
+
 
 
 

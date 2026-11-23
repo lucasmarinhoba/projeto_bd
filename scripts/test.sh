@@ -13,7 +13,7 @@ for f in /projeto/tests/test_*.sql; do
   found=1
   echo "==> ${f#/projeto/}"
   case "$f" in
-    */test_seguranca.sql) $APP -f "$f" ;;
+    */test_seguranca.sql) PGPASSWORD="${APP_DB_PASSWORD}" $APP -f "$f" ;;
     *)                    $ADMIN -f "$f" ;;
   esac
 done
