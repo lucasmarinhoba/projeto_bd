@@ -48,6 +48,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Lock `FOR NO KEY UPDATE` na linha de `usuario` para o limite de 3 futuras | `SELECT FOR UPDATE` ou `SERIALIZABLE` | Serializa reservas concorrentes do mesmo usuário sem bloquear checagens de chave estrangeira (`FOR KEY SHARE`) e sem exigir `SERIALIZABLE` |
 | `taxa_ocupacao` marcada como `STABLE SECURITY DEFINER` com `p_mes::timestamp` | `VOLATILE` sem `SECURITY DEFINER` | `STABLE` informa ao planner que o valor é constante no mesmo comando; `SECURITY DEFINER` permite que `app_reservas` execute a função sem ler `reserva`; `p_mes::timestamp` evita deslocamento de fuso no `date_trunc` |
 
+## Fase 5 — Views e materialized view
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| `mv_ocupacao_mensal` atualizada via `REFRESH MATERIALIZED VIEW CONCURRENTLY` (sem trigger por linha) | Trigger `AFTER` em `reserva` dando `REFRESH` a cada inserção | Recalcular a matview a cada reserva tornaria escritas lentas e criaria contenção sob concorrência; `REFRESH CONCURRENTLY` (manual ou via `pg_cron`) não bloqueia leituras |
+| Grade de meses em `mv_ocupacao_mensal` via `CROSS JOIN` (últimos 12 meses + meses futuros presentes em `reserva`) | `GROUP BY` direto apenas sobre linhas existentes em `reserva` | Garante que salas com `0` reservas em determinado mês também apareçam no relatório mensal com `taxa_ocupacao_pct = 0.00` |
+| View auxiliar opcional `v_salas_recursos` | Permitir que a CLI faça `SELECT` direto na tabela `sala` | Mantém o princípio do menor privilégio (`app_reservas` não acessa nenhuma tabela diretamente) e facilita a escolha de `sala_id` na CLI |
+
+
 
 
 

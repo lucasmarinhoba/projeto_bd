@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 6 / 13 fases · 30 / 69 subfases
+**Progresso geral:** 6 / 13 fases (Fases 0 a 5 concluídas; 4A + 4B = Fase 4) · 35 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -22,7 +22,7 @@
 | 3 | Seed base | 3 | B | ~~3.1~~ · ~~3.2~~ · ~~3.3~~ · ~~3.4~~ · ~~3.5~~ | ✅ |
 | 4A | Triggers | 3–4 | A | ~~4A.1~~ · ~~4A.2~~ · ~~4A.3~~ · ~~4A.4~~ | ✅ |
 | 4B | Functions e testes de regras | 4–5 | B | ~~4B.1~~ · ~~4B.2~~ · ~~4B.3~~ · ~~4B.4~~ · ~~4B.5~~ | ✅ |
-| 5 | Views e materialized view | 5 | B | 5.1 · 5.2 · 5.3 · 5.4 · 5.5 | ⬜ |
+| 5 | Views e materialized view | 5 | B | ~~5.1~~ · ~~5.2~~ · ~~5.3~~ · ~~5.4~~ · ~~5.5~~ | ✅ |
 | 6 | Carga massiva (≥ 10 mil) | 6 | A | 6.1 · 6.2 · 6.3 · 6.4 · 6.5 | ⬜ |
 | 7 | Consultas analíticas | 7 | A + B | 7.1 · 7.2 · 7.3 · 7.4 · 7.5 · 7.6 | ⬜ |
 | 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | 8.1 · 8.2 · 8.3 · 8.4 · 8.5 | ⬜ |
@@ -757,11 +757,11 @@ docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d reservas -f /pr
 
 **Subfases** (`05_views.sql`)
 
-- [ ] **5.1 `v_agenda_dia`** ▶ `SELECT ... WHERE sala_id = ? AND dia = ?` retorna as reservas ativas do dia.
-- [ ] **5.2 `v_reservas_usuario`** ▶ consulta por `usuario_id` mostra coluna `futura` correta.
-- [ ] **5.3 `mv_ocupacao_mensal` + índice UNIQUE `(sala_id, mes)`** ▶ `REFRESH ... CONCURRENTLY` executa.
-- [ ] **5.4 (Opcional) `v_salas_recursos`** ▶ menu da CLI pode listar IDs válidos.
-- [ ] **5.5 Fechamento** — *executar após a Fase 6* (precisa de volume): critério de aceite, `docs/estudo/fase5.md`, commit `fase5: views`.
+- [x] **5.1 `v_agenda_dia`** ▶ `SELECT ... WHERE sala_id = ? AND dia = ?` retorna as reservas ativas do dia.
+- [x] **5.2 `v_reservas_usuario`** ▶ consulta por `usuario_id` mostra coluna `futura` correta.
+- [x] **5.3 `mv_ocupacao_mensal` + índice UNIQUE `(sala_id, mes)`** ▶ `REFRESH ... CONCURRENTLY` executa.
+- [x] **5.4 (Opcional) `v_salas_recursos`** ▶ menu da CLI pode listar IDs válidos.
+- [x] **5.5 Fechamento** — *revalidar após a Fase 6 sobre o volume completo*: critério de aceite, `docs/estudo/fase5.md`, commit `fase5: views`.
 
 **`v_agenda_dia`** — reservas ATIVAS com sala e responsável, já com colunas de fácil filtro:
 `sala_id, sala_codigo, sala_nome, dia (date local), hora_inicio (time), hora_fim (time), reserva_id, responsavel, finalidade, qtd_participantes`.
