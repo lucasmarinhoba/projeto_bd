@@ -1,0 +1,11 @@
+﻿                                                                            QUERY PLAN                                                                            
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using idx_reserva_inicio on reserva  (cost=0.29..9.64 rows=60 width=54) (actual time=0.488..0.838 rows=233 loops=1)
+   Index Cond: ((lower(periodo) >= '2026-10-01 00:00:00-03'::timestamp with time zone) AND (lower(periodo) < '2026-10-08 00:00:00-03'::timestamp with time zone))
+   Buffers: shared hit=50
+ Planning:
+   Buffers: shared hit=163
+ Planning Time: 1.515 ms
+ Execution Time: 1.332 ms
+(7 rows)
+

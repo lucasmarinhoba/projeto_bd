@@ -1,0 +1,17 @@
+﻿                                                                         QUERY PLAN                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=95.19..95.20 rows=1 width=8) (actual time=0.670..0.676 rows=1 loops=1)
+   Buffers: shared hit=6
+   ->  Bitmap Heap Scan on reserva  (cost=4.63..95.10 rows=34 width=0) (actual time=0.118..0.122 rows=1 loops=1)
+         Recheck Cond: ((usuario_id = 54) AND (lower(periodo) > '2026-11-23 12:00:00-03'::timestamp with time zone) AND (status = 'ATIVA'::status_reserva))
+         Heap Blocks: exact=1
+         Buffers: shared hit=6
+         ->  Bitmap Index Scan on idx_reserva_usuario_futuras  (cost=0.00..4.62 rows=34 width=0) (actual time=0.086..0.088 rows=1 loops=1)
+               Index Cond: ((usuario_id = 54) AND (lower(periodo) > '2026-11-23 12:00:00-03'::timestamp with time zone))
+               Buffers: shared hit=5
+ Planning:
+   Buffers: shared hit=140
+ Planning Time: 1.079 ms
+ Execution Time: 0.953 ms
+(13 rows)
+

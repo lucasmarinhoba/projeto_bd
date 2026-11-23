@@ -72,6 +72,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Subconsulta do `HAVING` em Q2 usa `LEFT JOIN` sobre todas as salas | `AVG` apenas entre salas com reserva | Evita viés caso alguma sala tenha 0 reservas no mês analisado |
 | Q4 calcula janela nos últimos 3 meses fechados e filtra o último mês no `SELECT` externo | Filtrar o mês antes do `LAG()` | Se filtrássemos o mês no `WHERE` antes da janela, o `LAG()` não enxergaria o mês anterior e retornaria sempre `NULL` |
 
+## Fase 8 — Índices e `EXPLAIN ANALYZE`
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| `idx_reserva_usuario_futuras` parcial (`WHERE status = 'ATIVA'`) sobre `(usuario_id, lower(periodo))` | Índice não parcial em `(usuario_id)` | Cobre as 3 colunas filtradas no trigger `fn_regras_reserva` (`usuario_id`, `status = 'ATIVA'` e `lower(periodo) > now()`), reduz espaço em disco e viabiliza `Index Only Scan` |
+| `idx_reserva_inicio` B-tree parcial sobre `(lower(periodo)) WHERE status = 'ATIVA'` | Índice GiST em `(periodo)` sem `WHERE` | Consultas de intervalo por início (`lower(periodo) >= ... AND < ...`) com ordenação `ORDER BY lower(periodo)` aproveitam diretamente a ordenação nativa da B-tree sem `Sort` adicional |
+| Medir com 3 execuções consecutivas (`VACUUM ANALYZE` antes de medir) mantendo `13.013` reservas | Criar banco `reservas_bench` de 500 mil linhas | Com `13.013` linhas as duas consultas escolhidas já têm seletividade suficiente (~0,01% e ~1,8%) para o otimizador trocar `Seq Scan` por `Index Only Scan`/`Index Scan`/`Bitmap Index Scan` sem necessidade de massa artificial extra |
+
+
 
 
 

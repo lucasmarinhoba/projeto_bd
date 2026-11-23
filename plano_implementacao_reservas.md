@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 8 / 13 fases (Fases 0 a 7 concluídas; 4A + 4B = Fase 4) · 46 / 69 subfases
+**Progresso geral:** 9 / 13 fases (Fases 0 a 8 concluídas; 4A + 4B = Fase 4) · 51 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -25,7 +25,7 @@
 | 5 | Views e materialized view | 5 | B | ~~5.1~~ · ~~5.2~~ · ~~5.3~~ · ~~5.4~~ · ~~5.5~~ | ✅ |
 | 6 | Carga massiva (≥ 10 mil) | 6 | A | ~~6.1~~ · ~~6.2~~ · ~~6.3~~ · ~~6.4~~ · ~~6.5~~ | ✅ |
 | 7 | Consultas analíticas | 7 | A + B | ~~7.1~~ · ~~7.2~~ · ~~7.3~~ · ~~7.4~~ · ~~7.5~~ · ~~7.6~~ | ✅ |
-| 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | 8.1 · 8.2 · 8.3 · 8.4 · 8.5 | ⬜ |
+| 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | ~~8.1~~ · ~~8.2~~ · ~~8.3~~ · ~~8.4~~ · ~~8.5~~ | ✅ |
 | 9 | Concorrência e transações | 8 | A | 9.1 · 9.2 · 9.3 · 9.4 · 9.5 | ⬜ |
 | 10 | Segurança (`app_reservas`) | 8 | A | 10.1 · 10.2 · 10.3 · 10.4 | ⬜ |
 | 11 | Aplicação CLI | 9 | B | 11.1 · 11.2 · 11.3 · 11.4 | ⬜ |
@@ -952,11 +952,11 @@ Select-String -Path analise/consultas_analiticas.md -Pattern "^## Q[1-5]|HAVING|
 
 **Subfases**
 
-- [ ] **8.1 Preparação** — escolher as 2 consultas-alvo (fora do alcance do índice do EXCLUDE); decidir se usa `reservas_bench`; `DROP INDEX IF EXISTS` dos índices de `08_indices.sql` (o `make reset` já os cria). ▶ consultas e decisão registradas em `analise/explain/analise.md`.
-- [ ] **8.2 Índice 1** — procedimento passos 1–4. ▶ `antes_1.txt` e `depois_1.txt` com planos diferentes.
-- [ ] **8.3 Índice 2** — idem. ▶ `antes_2.txt` e `depois_2.txt`.
-- [ ] **8.4 Análise e prints** — passos 5–6. ▶ `analise.md` completo + screenshots.
-- [ ] **8.5 Fechamento** — `docs/estudo/fase8.md`, commit `fase8: indices e explain`.
+- [x] **8.1 Preparação** — escolher as 2 consultas-alvo (fora do alcance do índice do EXCLUDE); decidir se usa `reservas_bench`; `DROP INDEX IF EXISTS` dos índices de `08_indices.sql` (o `make reset` já os cria). ▶ consultas e decisão registradas em `analise/explain/analise.md`.
+- [x] **8.2 Índice 1** — procedimento passos 1–4. ▶ `antes_1.txt` e `depois_1.txt` com planos diferentes.
+- [x] **8.3 Índice 2** — idem. ▶ `antes_2.txt` e `depois_2.txt`.
+- [x] **8.4 Análise e prints** — passos 5–6. ▶ `analise.md` completo + screenshots.
+- [x] **8.5 Fechamento** — `docs/estudo/fase8.md`, commit `fase8: indices e explain`.
 
 > **Armadilha:** o `EXCLUDE` já cria um índice GiST parcial em `(sala_id, periodo) WHERE status='ATIVA'`. Consultas que filtram por `sala_id` + período + `status='ATIVA'` **já usam** esse índice, então o "antes" não seria "sem índice". Escolha consultas que ele **não cobre**.
 

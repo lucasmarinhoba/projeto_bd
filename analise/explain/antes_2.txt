@@ -1,0 +1,16 @@
+﻿                                                                                                QUERY PLAN                                                                                                 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=496.71..496.86 rows=60 width=54) (actual time=6.957..6.988 rows=233 loops=1)
+   Sort Key: (lower(periodo))
+   Sort Method: quicksort  Memory: 43kB
+   Buffers: shared hit=208
+   ->  Seq Scan on reserva  (cost=0.00..494.94 rows=60 width=54) (actual time=2.871..5.998 rows=233 loops=1)
+         Filter: ((status = 'ATIVA'::status_reserva) AND (lower(periodo) >= '2026-10-01 00:00:00-03'::timestamp with time zone) AND (lower(periodo) < '2026-10-08 00:00:00-03'::timestamp with time zone))
+         Rows Removed by Filter: 12780
+         Buffers: shared hit=205
+ Planning:
+   Buffers: shared hit=121
+ Planning Time: 0.610 ms
+ Execution Time: 7.116 ms
+(12 rows)
+
