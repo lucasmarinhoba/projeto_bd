@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 4 / 13 fases · 21 / 69 subfases
+**Progresso geral:** 6 / 13 fases · 30 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -20,8 +20,8 @@
 | 1 | Modelagem, DER e 3FN | 1–2 | A | ~~1.1~~ · ~~1.2~~ · ~~1.3~~ · ~~1.4~~ · ~~1.5~~ | ✅ |
 | 2 | DDL e integridade declarativa | 2–3 | A | ~~2.1~~ · ~~2.2~~ · ~~2.3~~ · ~~2.4~~ · ~~2.5~~ · ~~2.6~~ | ✅ |
 | 3 | Seed base | 3 | B | ~~3.1~~ · ~~3.2~~ · ~~3.3~~ · ~~3.4~~ · ~~3.5~~ | ✅ |
-| 4A | Triggers | 3–4 | A | 4A.1 · 4A.2 · 4A.3 · 4A.4 | ⬜ |
-| 4B | Functions e testes de regras | 4–5 | B | 4B.1 · 4B.2 · 4B.3 · 4B.4 · 4B.5 | ⬜ |
+| 4A | Triggers | 3–4 | A | ~~4A.1~~ · ~~4A.2~~ · ~~4A.3~~ · ~~4A.4~~ | ✅ |
+| 4B | Functions e testes de regras | 4–5 | B | ~~4B.1~~ · ~~4B.2~~ · ~~4B.3~~ · ~~4B.4~~ · ~~4B.5~~ | ✅ |
 | 5 | Views e materialized view | 5 | B | 5.1 · 5.2 · 5.3 · 5.4 · 5.5 | ⬜ |
 | 6 | Carga massiva (≥ 10 mil) | 6 | A | 6.1 · 6.2 · 6.3 · 6.4 · 6.5 | ⬜ |
 | 7 | Consultas analíticas | 7 | A + B | 7.1 · 7.2 · 7.3 · 7.4 · 7.5 · 7.6 | ⬜ |
@@ -527,17 +527,17 @@ docker compose exec -T db psql -U postgres -d reservas -c "SELECT id, matricula,
 **Subfases**
 
 *4A — Triggers (`03_triggers.sql`)*
-- [ ] **4A.1 Auditoria** — `fn_audit_reserva` + `trg_audit_reserva` (AFTER, `SECURITY DEFINER`). ▶ um `INSERT` manual gera linha `INSERT` em `log_reserva`.
-- [ ] **4A.2 Regras simples** — `fn_regras_reserva` com passos 1–5: reativação proibida (RS009), duração (RS005), horário/mesmo dia (RS006), capacidade (RS007). ▶ cada regra rejeita um caso manual.
-- [ ] **4A.3 Limite de futuras com lock** — passo 6 (RS008) com `FOR NO KEY UPDATE`. ▶ 4ª reserva futura do mesmo usuário falha.
-- [ ] **4A.4 Fechamento 4A** — commit `fase4a: triggers`.
+- [x] **4A.1 Auditoria** — `fn_audit_reserva` + `trg_audit_reserva` (AFTER, `SECURITY DEFINER`). ▶ um `INSERT` manual gera linha `INSERT` em `log_reserva`.
+- [x] **4A.2 Regras simples** — `fn_regras_reserva` com passos 1–5: reativação proibida (RS009), duração (RS005), horário/mesmo dia (RS006), capacidade (RS007). ▶ cada regra rejeita um caso manual.
+- [x] **4A.3 Limite de futuras com lock** — passo 6 (RS008) com `FOR NO KEY UPDATE`. ▶ 4ª reserva futura do mesmo usuário falha.
+- [x] **4A.4 Fechamento 4A** — commit `fase4a: triggers`.
 
 *4B — Functions (`04_functions.sql`) e testes*
-- [ ] **4B.1 `criar_reserva`** — validações RS001–RS004 e captura de `23P01` → RS010. ▶ retorna `id`; conflito devolve RS010.
-- [ ] **4B.2 `cancelar_reserva`** — `FOR UPDATE`, RS011–RS014, log `CANCELAMENTO`. ▶ cancelamento válido gera log com `dados_antigos` e `dados_novos`.
-- [ ] **4B.3 `taxa_ocupacao`** — `STABLE`, `SECURITY DEFINER`, mês normalizado. ▶ valor entre 0 e 100 para uma sala/mês.
-- [ ] **4B.4 `tests/test_regras.sql`** — 1 bloco `DO` por SQLSTATE + casos positivos; ligado ao `make test`. ▶ `make test` imprime todos os OK.
-- [ ] **4B.5 Fechamento** — `docs/estudo/fase4.md`, commit `fase4b: functions e testes`.
+- [x] **4B.1 `criar_reserva`** — validações RS001–RS004 e captura de `23P01` → RS010. ▶ retorna `id`; conflito devolve RS010.
+- [x] **4B.2 `cancelar_reserva`** — `FOR UPDATE`, RS011–RS014, log `CANCELAMENTO`. ▶ cancelamento válido gera log com `dados_antigos` e `dados_novos`.
+- [x] **4B.3 `taxa_ocupacao`** — `STABLE`, `SECURITY DEFINER`, mês normalizado. ▶ valor entre 0 e 100 para uma sala/mês.
+- [x] **4B.4 `tests/test_regras.sql`** — 1 bloco `DO` por SQLSTATE + casos positivos; ligado ao `make test`. ▶ `make test` imprime todos os OK.
+- [x] **4B.5 Fechamento** — `docs/estudo/fase4.md`, commit `fase4b: functions e testes`.
 
 #### Códigos de erro (SQLSTATE customizados)
 

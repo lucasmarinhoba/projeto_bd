@@ -39,5 +39,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Separação entre `06_seed_base.sql` (cadastros) e `07_seed_massa.sql` (reservas) | Um único arquivo de seed | Permite testar triggers, functions e views antes da carga massiva sem sujar as tabelas com milhares de linhas prematuramente |
 | Nomes gerados com `setseed(0.42)` + `random()` e matrículas/e-mails sequenciais (`idx`) | Gerar e-mails derivados do nome | Mantém a aleatoriedade reproduzível dos nomes sem risco de violar `UNIQUE` em homônimos |
 
+## Fase 4 — Triggers e functions
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| `criar_reserva` e `cancelar_reserva` como `FUNCTION` (não `PROCEDURE`) | `PROCEDURE` com `COMMIT` interno e `CALL` | Functions retornam `id` direto em `SELECT criar_reserva(...)` e preservam atomicidade dentro da transação do chamador; o bloco `EXCEPTION` usa savepoint implícito para traduzir `23P01` em `RS010` |
+| Regras de negócio em trigger `BEFORE` + `SECURITY DEFINER` apenas nas functions/auditoria | Validar capacidade/duração só dentro de `criar_reserva` | Defesa em profundidade: mesmo `INSERT`/`UPDATE` diretos ou cargas em massa respeitam todas as regras (capacidade, horário, duração, limite futuro) |
+| Lock `FOR NO KEY UPDATE` na linha de `usuario` para o limite de 3 futuras | `SELECT FOR UPDATE` ou `SERIALIZABLE` | Serializa reservas concorrentes do mesmo usuário sem bloquear checagens de chave estrangeira (`FOR KEY SHARE`) e sem exigir `SERIALIZABLE` |
+| `taxa_ocupacao` marcada como `STABLE SECURITY DEFINER` com `p_mes::timestamp` | `VOLATILE` sem `SECURITY DEFINER` | `STABLE` informa ao planner que o valor é constante no mesmo comando; `SECURITY DEFINER` permite que `app_reservas` execute a função sem ler `reserva`; `p_mes::timestamp` evita deslocamento de fuso no `date_trunc` |
+
+
 
 
