@@ -64,6 +64,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Calibrar `r_sel < 0.25` sobre `51.100` slots disjuntos (≈ 12.700 históricas + 120 futuras) | `r_sel < 0.22` | Garante folga confortável acima do requisito de 10.000 reservas mesmo após ~8% de cancelamentos (que permanecem na tabela como `CANCELADA`) |
 | Excluir sala `5` e usuários `1..4` das reservas futuras do seed massivo | Incluir todos os cadastros na carga futura | Mantém os usuários e a sala de demonstração com contagem limpa no futuro para as demonstrações de concorrência (Fase 9) e CLI (Fase 11) |
 
+## Fase 7 — Consultas analíticas
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Q2 e Q4 consultam diretamente `sala` + `reserva` em vez de ler `mv_ocupacao_mensal` | Ler os dados já agregados direto da matview | Exercita `JOIN`, `HAVING` com subconsulta e funções de janela sobre os dados reais e permite validar a coerência numérica contra `mv_ocupacao_mensal` |
+| Subconsulta do `HAVING` em Q2 usa `LEFT JOIN` sobre todas as salas | `AVG` apenas entre salas com reserva | Evita viés caso alguma sala tenha 0 reservas no mês analisado |
+| Q4 calcula janela nos últimos 3 meses fechados e filtra o último mês no `SELECT` externo | Filtrar o mês antes do `LAG()` | Se filtrássemos o mês no `WHERE` antes da janela, o `LAG()` não enxergaria o mês anterior e retornaria sempre `NULL` |
+
+
 
 
 

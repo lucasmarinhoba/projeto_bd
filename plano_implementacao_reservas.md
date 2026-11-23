@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 7 / 13 fases (Fases 0 a 6 concluídas; 4A + 4B = Fase 4) · 40 / 69 subfases
+**Progresso geral:** 8 / 13 fases (Fases 0 a 7 concluídas; 4A + 4B = Fase 4) · 46 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -24,7 +24,7 @@
 | 4B | Functions e testes de regras | 4–5 | B | ~~4B.1~~ · ~~4B.2~~ · ~~4B.3~~ · ~~4B.4~~ · ~~4B.5~~ | ✅ |
 | 5 | Views e materialized view | 5 | B | ~~5.1~~ · ~~5.2~~ · ~~5.3~~ · ~~5.4~~ · ~~5.5~~ | ✅ |
 | 6 | Carga massiva (≥ 10 mil) | 6 | A | ~~6.1~~ · ~~6.2~~ · ~~6.3~~ · ~~6.4~~ · ~~6.5~~ | ✅ |
-| 7 | Consultas analíticas | 7 | A + B | 7.1 · 7.2 · 7.3 · 7.4 · 7.5 · 7.6 | ⬜ |
+| 7 | Consultas analíticas | 7 | A + B | ~~7.1~~ · ~~7.2~~ · ~~7.3~~ · ~~7.4~~ · ~~7.5~~ · ~~7.6~~ | ✅ |
 | 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | 8.1 · 8.2 · 8.3 · 8.4 · 8.5 | ⬜ |
 | 9 | Concorrência e transações | 8 | A | 9.1 · 9.2 · 9.3 · 9.4 · 9.5 | ⬜ |
 | 10 | Segurança (`app_reservas`) | 8 | A | 10.1 · 10.2 · 10.3 · 10.4 | ⬜ |
@@ -904,12 +904,12 @@ Arquivos: `analise/consultas_analiticas.sql` (SQL puro) e `analise/consultas_ana
 
 **Subfases** (cada Qn: SQL + saída real + interpretação no `.md`)
 
-- [ ] **7.1 Q1** — JOIN + GROUP BY + HAVING
-- [ ] **7.2 Q2** — subconsulta escalar no HAVING
-- [ ] **7.3 Q3** — CTE + `FILTER`
-- [ ] **7.4 Q4** — `RANK()` + `LAG()`
-- [ ] **7.5 Q5** — CTE + `DENSE_RANK()`
-- [ ] **7.6 Fechamento** — conferir tempos (< 2 s) e coerência entre consultas, `docs/estudo/fase7.md`, commit `fase7: consultas analiticas`.
+- [x] **7.1 Q1** — JOIN + GROUP BY + HAVING
+- [x] **7.2 Q2** — subconsulta escalar no HAVING
+- [x] **7.3 Q3** — CTE + `FILTER`
+- [x] **7.4 Q4** — `RANK()` + `LAG()`
+- [x] **7.5 Q5** — CTE + `DENSE_RANK()`
+- [x] **7.6 Fechamento** — conferir tempos (< 2 s) e coerência entre consultas, `docs/estudo/fase7.md`, commit `fase7: consultas analiticas`.
 
 | # | Pergunta de negócio | Técnicas |
 |---|---|---|
