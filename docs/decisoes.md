@@ -96,6 +96,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Revogar `EXECUTE` de `PUBLIC` em **todas** as funções do schema `reservas` (inclusive triggers) | Conceder `GRANT EXECUTE` só nas 3 funções sem `REVOKE` | Remove permissão implícita de `PUBLIC` que o PostgreSQL concede por padrão ao criar qualquer função |
 | Incluir `v_salas_recursos` nos `GRANT SELECT` de `app_reservas` | Deixar a CLI consultar apenas IDs numéricos cegos | Mantém o isolamento total das tabelas base (`sala`, `recurso`, `sala_recurso`) enquanto apoia o menu da Fase 11 |
 
+## Fase 11 — Aplicação (CLI e Web mínima)
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Incluir página web simples (`app/web.py` via `http.server` da stdlib em `localhost:8000`) junto à CLI (`app/main.py`) | Apenas CLI no terminal ou framework pesado (Flask/Django) | Atende ao pedido do usuário para visualizar/demonstrar no navegador sem adicionar dependências externas nem ORMs, compartilhando o mesmo `app/db.py` |
+| Apenas *parsing* de formato (`date.fromisoformat`, `time.fromisoformat`, `int`) em `app/` | Validar limites ou horários na interface antes de chamar o banco | Garante aderência estrita ao enunciado ("casca fina"): qualquer erro (`RS001`–`RS014`) nasce no PostgreSQL e é exibido via `e.diag.message_primary` |
+| `--smoke-test` integrado em `app/main.py` testando CLI + HTTP local em porta efêmera | Testes manuais apenas | Permite validação automatizada e reproduzível na Fase 11 e na entrega final (Fase 12) sem deixar lixo persistido nem porta ocupada |
+
+
 
 
 

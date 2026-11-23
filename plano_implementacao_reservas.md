@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 11 / 13 fases (Fases 0 a 10 concluídas; 4A + 4B = Fase 4) · 60 / 69 subfases
+**Progresso geral:** 12 / 13 fases (Fases 0 a 11 concluídas; 4A + 4B = Fase 4) · 64 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -28,7 +28,7 @@
 | 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | ~~8.1~~ · ~~8.2~~ · ~~8.3~~ · ~~8.4~~ · ~~8.5~~ | ✅ |
 | 9 | Concorrência e transações | 8 | A | ~~9.1~~ · ~~9.2~~ · ~~9.3~~ · ~~9.4~~ · ~~9.5~~ | ✅ |
 | 10 | Segurança (`app_reservas`) | 8 | A | ~~10.1~~ · ~~10.2~~ · ~~10.3~~ · ~~10.4~~ | ✅ |
-| 11 | Aplicação CLI | 9 | B | 11.1 · 11.2 · 11.3 · 11.4 | ⬜ |
+| 11 | Aplicação CLI | 9 | B | ~~11.1~~ · ~~11.2~~ · ~~11.3~~ · ~~11.4~~ | ✅ |
 | 12 | Documentação e ensaio oral | 10 | A + B | 12.1 · 12.2 · 12.3 · 12.4 · 12.5 | ⬜ |
 
 **Dependências entre fases**
@@ -1155,10 +1155,10 @@ docker compose exec -T db psql -U app_reservas -d reservas -c "SELECT * FROM v_a
 
 **Subfases** (`app/`)
 
-- [ ] **11.1 Conexão** — `db.py` lê o `.env`, conecta como `app_reservas`; `requirements.txt` com `psycopg[binary]`. ▶ conexão abre e `SHOW timezone` = `America/Fortaleza`.
-- [ ] **11.2 Menu e 4 funcionalidades** — `main.py` com as 4 chamadas da tabela abaixo, apenas *parsing* de formato. ▶ cada opção retorna dados.
-- [ ] **11.3 Transação e erros** — função `chamar` (commit/rollback, `e.diag.message_primary`). ▶ erros RS005–RS010 aparecem com a mensagem do banco.
-- [ ] **11.4 Fechamento** — fluxo completo do critério de aceite, `grep` sem lógica de negócio, revisão cruzada da dupla, `docs/estudo/fase11.md`, commit `fase11: cli`.
+- [x] **11.1 Conexão** — `db.py` lê o `.env`, conecta como `app_reservas`; `requirements.txt` com `psycopg[binary]`. ▶ conexão abre e `SHOW timezone` = `America/Fortaleza`.
+- [x] **11.2 Menu e 4 funcionalidades** — `main.py` com as 4 chamadas da tabela abaixo, apenas *parsing* de formato. ▶ cada opção retorna dados.
+- [x] **11.3 Transação e erros** — função `chamar` (commit/rollback, `e.diag.message_primary`). ▶ erros RS005–RS010 aparecem com a mensagem do banco.
+- [x] **11.4 Fechamento** — fluxo completo do critério de aceite, `grep` sem lógica de negócio, revisão cruzada da dupla, `docs/estudo/fase11.md`, commit `fase11: cli`.
 
 | Menu | Chamada SQL (parametrizada) |
 |---|---|
