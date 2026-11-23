@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 9 / 13 fases (Fases 0 a 8 concluídas; 4A + 4B = Fase 4) · 51 / 69 subfases
+**Progresso geral:** 10 / 13 fases (Fases 0 a 9 concluídas; 4A + 4B = Fase 4) · 56 / 69 subfases
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -26,7 +26,7 @@
 | 6 | Carga massiva (≥ 10 mil) | 6 | A | ~~6.1~~ · ~~6.2~~ · ~~6.3~~ · ~~6.4~~ · ~~6.5~~ | ✅ |
 | 7 | Consultas analíticas | 7 | A + B | ~~7.1~~ · ~~7.2~~ · ~~7.3~~ · ~~7.4~~ · ~~7.5~~ · ~~7.6~~ | ✅ |
 | 8 | Índices e `EXPLAIN ANALYZE` | 7–8 | B | ~~8.1~~ · ~~8.2~~ · ~~8.3~~ · ~~8.4~~ · ~~8.5~~ | ✅ |
-| 9 | Concorrência e transações | 8 | A | 9.1 · 9.2 · 9.3 · 9.4 · 9.5 | ⬜ |
+| 9 | Concorrência e transações | 8 | A | ~~9.1~~ · ~~9.2~~ · ~~9.3~~ · ~~9.4~~ · ~~9.5~~ | ✅ |
 | 10 | Segurança (`app_reservas`) | 8 | A | 10.1 · 10.2 · 10.3 · 10.4 | ⬜ |
 | 11 | Aplicação CLI | 9 | B | 11.1 · 11.2 · 11.3 · 11.4 | ⬜ |
 | 12 | Documentação e ensaio oral | 10 | A + B | 12.1 · 12.2 · 12.3 · 12.4 · 12.5 | ⬜ |
@@ -1009,11 +1009,11 @@ Arquivos: `concorrencia/roteiro.md`, `sessao_A.sql`, `sessao_B.sql`, `teste_conc
 
 **Subfases**
 
-- [ ] **9.1 Cenário 1** — mesmo horário, duas sessões, variantes `COMMIT` e `ROLLBACK`. ▶ saídas reais copiadas para `roteiro.md`.
-- [ ] **9.2 Evidência de espera** — `pg_stat_activity` na Sessão C. ▶ `wait_event_type = Lock` registrado.
-- [ ] **9.3 Cenário 2** — corrida no limite de 3, com e sem o lock. ▶ os dois resultados registrados.
-- [ ] **9.4 Cenário 3** — `teste_concorrencia.py` com 20 threads, 10 execuções. ▶ 10/10 verdes.
-- [ ] **9.5 Fechamento** — conclusão em `roteiro.md`, `docs/estudo/fase9.md`, commit `fase9: concorrencia`.
+- [x] **9.1 Cenário 1** — mesmo horário, duas sessões, variantes `COMMIT` e `ROLLBACK`. ▶ saídas reais copiadas para `roteiro.md`.
+- [x] **9.2 Evidência de espera** — `pg_stat_activity` na Sessão C. ▶ `wait_event_type = Lock` registrado.
+- [x] **9.3 Cenário 2** — corrida no limite de 3, com e sem o lock. ▶ os dois resultados registrados.
+- [x] **9.4 Cenário 3** — `teste_concorrencia.py` com 20 threads, 10 execuções. ▶ 10/10 verdes.
+- [x] **9.5 Fechamento** — conclusão em `roteiro.md`, `docs/estudo/fase9.md`, commit `fase9: concorrencia`.
 
 #### Cenário 1 — Mesmo horário, duas sessões (manual, 3 terminais `psql`)
 

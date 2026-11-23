@@ -80,6 +80,15 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | `idx_reserva_inicio` B-tree parcial sobre `(lower(periodo)) WHERE status = 'ATIVA'` | Índice GiST em `(periodo)` sem `WHERE` | Consultas de intervalo por início (`lower(periodo) >= ... AND < ...`) com ordenação `ORDER BY lower(periodo)` aproveitam diretamente a ordenação nativa da B-tree sem `Sort` adicional |
 | Medir com 3 execuções consecutivas (`VACUUM ANALYZE` antes de medir) mantendo `13.013` reservas | Criar banco `reservas_bench` de 500 mil linhas | Com `13.013` linhas as duas consultas escolhidas já têm seletividade suficiente (~0,01% e ~1,8%) para o otimizador trocar `Seq Scan` por `Index Only Scan`/`Index Scan`/`Bitmap Index Scan` sem necessidade de massa artificial extra |
 
+## Fase 9 — Concorrência e transações
+
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Nível de isolamento padrão `READ COMMITTED` combinado com `EXCLUDE USING gist` e `FOR NO KEY UPDATE` | Elevar todas as transações para `SERIALIZABLE` | Evita falhas frequentes de serialização (`40001`) com necessidade de *retry* na aplicação; o `EXCLUDE` e o lock em `usuario` já impedem corrida de horário e *write skew* de limite |
+| `teste_concorrencia.py` detecta se `app_reservas` já existe/tem `EXECUTE` (usando `POSTGRES_USER` antes da Fase 10 e `app_reservas` da Fase 10 em diante) | Fixar `app_reservas` já na Fase 9 (quebrando antes da Fase 10) ou fixar `postgres` para sempre | Permite rodar `teste_concorrencia.py` imediatamente na Fase 9 e automaticamente validar o caminho completo com `app_reservas` após a Fase 10 e na entrega final |
+| Selecionar usuários sem reservas futuras em `teste_concorrencia.py` (sem `DELETE` em `reserva`) | Apagar reservas criadas no teste com `DELETE` | Respeita a restrição `ON DELETE RESTRICT` de `log_reserva → reserva` e mantém a integridade *append-only* da auditoria |
+
+
 
 
 
