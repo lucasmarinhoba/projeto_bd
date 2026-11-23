@@ -73,13 +73,14 @@ def resolve_worker_conninfo(env: dict[str, str]) -> tuple[str, str]:
 
 
 def pick_usuarios_livres(admin_dsn: str, quantidade: int) -> list[int]:
-    """Seleciona usuarios ativos nao-admin sem reservas futuras (evita RS008 acidental)."""
+    """Seleciona usuarios ativos nao-admin fora dos IDs demo (1..4) e sem reservas futuras."""
     with psycopg.connect(admin_dsn) as conn:
         rows = conn.execute(
             """
             SELECT u.id
             FROM reservas.usuario u
             WHERE u.ativo
+              AND u.id > 4
               AND u.tipo <> 'ADMIN'
               AND NOT EXISTS (
                 SELECT 1
@@ -100,151 +101,175 @@ def pick_usuarios_livres(admin_dsn: str, quantidade: int) -> list[int]:
     return [int(r[0]) for r in rows]
 
 
+def limpar_reservas(admin_dsn: str, reserva_ids: list[int]) -> None:
+    """Cancela reservas criadas pelo teste usando o ADMIN fixo (id=4)."""
+    if not reserva_ids:
+        return
+    with psycopg.connect(admin_dsn, autocommit=False) as conn:
+        for rid in reserva_ids:
+            conn.execute(
+                "SELECT reservas.cancelar_reserva(%s, 4, 'Limpeza pos-teste concorrencia')",
+                (rid,),
+            )
+        conn.commit()
+
+
 def run_cenario_3(admin_dsn: str, worker_dsn: str, worker_role: str) -> None:
     print(f"=== Cenario 3: 10 baterias x 20 threads (role={worker_role}) ===")
     n_threads = 20
     n_baterias = 10
     base_date = datetime.now(TZ).date() + timedelta(days=60)
+    criadas: list[int] = []
 
-    for bateria in range(1, n_baterias + 1):
-        usuarios = pick_usuarios_livres(admin_dsn, n_threads)
-        dia_slot = base_date + timedelta(days=bateria)
-        ini = datetime.combine(dia_slot, datetime.min.time(), tzinfo=TZ) + timedelta(hours=14)
-        fim = ini + timedelta(hours=2)
+    try:
+        for bateria in range(1, n_baterias + 1):
+            usuarios = pick_usuarios_livres(admin_dsn, n_threads)
+            dia_slot = base_date + timedelta(days=bateria)
+            ini = datetime.combine(dia_slot, datetime.min.time(), tzinfo=TZ) + timedelta(hours=14)
+            fim = ini + timedelta(hours=2)
 
-        barrier = threading.Barrier(n_threads)
-        resultados: list[tuple[int, str, int | str]] = []
-        lock = threading.Lock()
+            barrier = threading.Barrier(n_threads)
+            resultados: list[tuple[int, str, int | str]] = []
+            lock = threading.Lock()
 
-        def worker(idx: int, uid: int) -> None:
-            try:
-                with psycopg.connect(worker_dsn, autocommit=False) as conn:
-                    conn.execute("SET search_path = reservas, public;")
-                    conn.execute("SET timezone = 'America/Fortaleza';")
-                    barrier.wait(timeout=15)
-                    try:
-                        res = conn.execute(
-                            "SELECT criar_reserva(%s, %s, %s, %s, %s, %s)",
-                            (uid, 5, ini, fim, 10, f"Concorrencia B{bateria} T{idx}"),
-                        ).fetchone()
-                        conn.commit()
-                        with lock:
-                            resultados.append((idx, "OK", int(res[0])))
-                    except psycopg.Error as exc:
-                        conn.rollback()
-                        with lock:
-                            resultados.append((idx, exc.sqlstate or "ERR", exc.diag.message_primary or str(exc)))
-            except Exception as exc:  # pragma: no cover - erro inesperado de barreira/conexao
-                with lock:
-                    resultados.append((idx, "EXC", str(exc)))
+            def worker(idx: int, uid: int) -> None:
+                try:
+                    with psycopg.connect(worker_dsn, autocommit=False) as conn:
+                        conn.execute("SET search_path = reservas, public;")
+                        conn.execute("SET timezone = 'America/Fortaleza';")
+                        barrier.wait(timeout=15)
+                        try:
+                            res = conn.execute(
+                                "SELECT criar_reserva(%s, %s, %s, %s, %s, %s)",
+                                (uid, 5, ini, fim, 10, f"Concorrencia B{bateria} T{idx}"),
+                            ).fetchone()
+                            conn.commit()
+                            with lock:
+                                resultados.append((idx, "OK", int(res[0])))
+                        except psycopg.Error as exc:
+                            conn.rollback()
+                            with lock:
+                                resultados.append((idx, exc.sqlstate or "ERR", exc.diag.message_primary or str(exc)))
+                except Exception as exc:  # pragma: no cover - erro inesperado de barreira/conexao
+                    with lock:
+                        resultados.append((idx, "EXC", str(exc)))
 
-        threads = [
-            threading.Thread(target=worker, args=(i, usuarios[i]), daemon=True)
-            for i in range(n_threads)
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join(timeout=30)
+            threads = [
+                threading.Thread(target=worker, args=(i, usuarios[i]), daemon=True)
+                for i in range(n_threads)
+            ]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join(timeout=30)
 
-        sucessos = [r for r in resultados if r[1] == "OK"]
-        conflitos = [r for r in resultados if r[1] == "RS010"]
-        outros = [r for r in resultados if r[1] not in ("OK", "RS010")]
+            sucessos = [r for r in resultados if r[1] == "OK"]
+            criadas.extend(int(r[2]) for r in sucessos)
+            conflitos = [r for r in resultados if r[1] == "RS010"]
+            outros = [r for r in resultados if r[1] not in ("OK", "RS010")]
 
-        assert len(resultados) == n_threads, f"Bateria {bateria}: faltaram respostas ({len(resultados)})"
-        assert len(outros) == 0, f"Bateria {bateria}: erros inesperados: {outros}"
-        assert len(sucessos) == 1, f"Bateria {bateria}: esperado 1 sucesso, obtido {len(sucessos)}"
-        assert len(conflitos) == n_threads - 1, (
-            f"Bateria {bateria}: esperado {n_threads - 1} RS010, obtido {len(conflitos)}"
-        )
+            assert len(resultados) == n_threads, f"Bateria {bateria}: faltaram respostas ({len(resultados)})"
+            assert len(outros) == 0, f"Bateria {bateria}: erros inesperados: {outros}"
+            assert len(sucessos) == 1, f"Bateria {bateria}: esperado 1 sucesso, obtido {len(sucessos)}"
+            assert len(conflitos) == n_threads - 1, (
+                f"Bateria {bateria}: esperado {n_threads - 1} RS010, obtido {len(conflitos)}"
+            )
 
-        with psycopg.connect(admin_dsn) as conn:
-            qtd_banco = conn.execute(
-                """
-                SELECT count(*)
-                FROM reservas.reserva
-                WHERE sala_id = 5
-                  AND status = 'ATIVA'
-                  AND periodo && tstzrange(%s, %s, '[)')
-                """,
-                (ini, fim),
-            ).fetchone()[0]
-        assert qtd_banco == 1, f"Bateria {bateria}: banco ficou com {qtd_banco} reservas sobrepostas!"
-        print(
-            f"  Bateria {bateria:02d}/10 OK: 1 sucesso (reserva_id={sucessos[0][2]}), "
-            f"19 RS010, sobrepostas no banco={qtd_banco}"
-        )
+            with psycopg.connect(admin_dsn) as conn:
+                qtd_banco = conn.execute(
+                    """
+                    SELECT count(*)
+                    FROM reservas.reserva
+                    WHERE sala_id = 5
+                      AND status = 'ATIVA'
+                      AND periodo && tstzrange(%s, %s, '[)')
+                    """,
+                    (ini, fim),
+                ).fetchone()[0]
+            assert qtd_banco == 1, f"Bateria {bateria}: banco ficou com {qtd_banco} reservas sobrepostas!"
+            print(
+                f"  Bateria {bateria:02d}/10 OK: 1 sucesso (reserva_id={sucessos[0][2]}), "
+                f"19 RS010, sobrepostas no banco={qtd_banco}"
+            )
+    finally:
+        limpar_reservas(admin_dsn, criadas)
 
 
 def run_cenario_2_limite(admin_dsn: str, worker_dsn: str) -> None:
     print("=== Cenario 2 (automatizado): corrida no limite de 3 reservas futuras ===")
     uid = pick_usuarios_livres(admin_dsn, 1)[0]
     base_date = datetime.now(TZ).date() + timedelta(days=90)
+    criadas: list[int] = []
 
-    # Cria 2 reservas futuras previas para o usuario (em dias/salas distintos)
-    with psycopg.connect(admin_dsn, autocommit=False) as conn:
-        for k in range(2):
-            d = base_date + timedelta(days=k)
-            ini = datetime.combine(d, datetime.min.time(), tzinfo=TZ) + timedelta(hours=8)
+    try:
+        # Cria 2 reservas futuras previas para o usuario (em dias/salas distintos)
+        with psycopg.connect(admin_dsn, autocommit=False) as conn:
+            for k in range(2):
+                d = base_date + timedelta(days=k)
+                ini = datetime.combine(d, datetime.min.time(), tzinfo=TZ) + timedelta(hours=8)
+                fim = ini + timedelta(hours=2)
+                rid = conn.execute(
+                    "SELECT reservas.criar_reserva(%s, %s, %s, %s, %s, %s)",
+                    (uid, 1 + k, ini, fim, 10, f"Previa limite {k + 1}"),
+                ).fetchone()[0]
+                criadas.append(int(rid))
+            conn.commit()
+
+        # Dispara 10 threads simultaneas tentando criar a 3a reserva em salas diferentes (1..10, dia diferente)
+        n_threads = 10
+        barrier = threading.Barrier(n_threads)
+        resultados: list[tuple[int, str, int | None]] = []
+        lock = threading.Lock()
+        d_corrida = base_date + timedelta(days=5)
+
+        def worker(idx: int) -> None:
+            ini = datetime.combine(d_corrida, datetime.min.time(), tzinfo=TZ) + timedelta(hours=10)
             fim = ini + timedelta(hours=2)
-            conn.execute(
-                "SELECT reservas.criar_reserva(%s, %s, %s, %s, %s, %s)",
-                (uid, 1 + k, ini, fim, 10, f"Previa limite {k + 1}"),
-            )
-        conn.commit()
+            sala_id = 1 + idx  # salas 1..10 (sem conflito de sala entre as threads)
+            with psycopg.connect(worker_dsn, autocommit=False) as conn:
+                conn.execute("SET search_path = reservas, public;")
+                conn.execute("SET timezone = 'America/Fortaleza';")
+                barrier.wait(timeout=15)
+                try:
+                    res = conn.execute(
+                        "SELECT criar_reserva(%s, %s, %s, %s, %s, %s)",
+                        (uid, sala_id, ini, fim, 5, f"Corrida limite T{idx}"),
+                    ).fetchone()
+                    conn.commit()
+                    with lock:
+                        resultados.append((idx, "OK", int(res[0])))
+                except psycopg.Error as exc:
+                    conn.rollback()
+                    with lock:
+                        resultados.append((idx, exc.sqlstate or "ERR", None))
 
-    # Dispara 10 threads simultaneas tentando criar a 3a reserva em salas diferentes (1..10, dia diferente)
-    n_threads = 10
-    barrier = threading.Barrier(n_threads)
-    resultados: list[tuple[int, str]] = []
-    lock = threading.Lock()
-    d_corrida = base_date + timedelta(days=5)
+        threads = [threading.Thread(target=worker, args=(i,), daemon=True) for i in range(n_threads)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=30)
 
-    def worker(idx: int) -> None:
-        ini = datetime.combine(d_corrida, datetime.min.time(), tzinfo=TZ) + timedelta(hours=10)
-        fim = ini + timedelta(hours=2)
-        sala_id = 1 + idx  # salas 1..10 (sem conflito de sala entre as threads)
-        with psycopg.connect(worker_dsn, autocommit=False) as conn:
-            conn.execute("SET search_path = reservas, public;")
-            conn.execute("SET timezone = 'America/Fortaleza';")
-            barrier.wait(timeout=15)
-            try:
-                conn.execute(
-                    "SELECT criar_reserva(%s, %s, %s, %s, %s, %s)",
-                    (uid, sala_id, ini, fim, 5, f"Corrida limite T{idx}"),
-                )
-                conn.commit()
-                with lock:
-                    resultados.append((idx, "OK"))
-            except psycopg.Error as exc:
-                conn.rollback()
-                with lock:
-                    resultados.append((idx, exc.sqlstate or "ERR"))
+        criadas.extend(int(rid) for _, st, rid in resultados if st == "OK" and rid is not None)
+        sucessos = sum(1 for _, st, _ in resultados if st == "OK")
+        erros_rs008 = sum(1 for _, st, _ in resultados if st == "RS008")
+        assert sucessos == 1, f"Corrida limite: esperado 1 sucesso, obtido {sucessos} ({resultados})"
+        assert erros_rs008 == n_threads - 1, (
+            f"Corrida limite: esperado {n_threads - 1} RS008, obtido {erros_rs008} ({resultados})"
+        )
 
-    threads = [threading.Thread(target=worker, args=(i,), daemon=True) for i in range(n_threads)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join(timeout=30)
-
-    sucessos = sum(1 for _, st in resultados if st == "OK")
-    erros_rs008 = sum(1 for _, st in resultados if st == "RS008")
-    assert sucessos == 1, f"Corrida limite: esperado 1 sucesso, obtido {sucessos} ({resultados})"
-    assert erros_rs008 == n_threads - 1, (
-        f"Corrida limite: esperado {n_threads - 1} RS008, obtido {erros_rs008} ({resultados})"
-    )
-
-    with psycopg.connect(admin_dsn) as conn:
-        total_futuras = conn.execute(
-            """
-            SELECT count(*)
-            FROM reservas.reserva
-            WHERE usuario_id = %s AND status = 'ATIVA' AND lower(periodo) > now()
-            """,
-            (uid,),
-        ).fetchone()[0]
-    assert total_futuras == 3, f"Usuario {uid} ficou com {total_futuras} reservas futuras!"
-    print(f"  Corrida limite OK: usuario {uid} -> 1 sucesso, 9 RS008, total futuras={total_futuras}")
+        with psycopg.connect(admin_dsn) as conn:
+            total_futuras = conn.execute(
+                """
+                SELECT count(*)
+                FROM reservas.reserva
+                WHERE usuario_id = %s AND status = 'ATIVA' AND lower(periodo) > now()
+                """,
+                (uid,),
+            ).fetchone()[0]
+        assert total_futuras == 3, f"Usuario {uid} ficou com {total_futuras} reservas futuras!"
+        print(f"  Corrida limite OK: usuario {uid} -> 1 sucesso, 9 RS008, total futuras={total_futuras}")
+    finally:
+        limpar_reservas(admin_dsn, criadas)
 
 
 def main() -> int:

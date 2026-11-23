@@ -87,6 +87,7 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Nível de isolamento padrão `READ COMMITTED` combinado com `EXCLUDE USING gist` e `FOR NO KEY UPDATE` | Elevar todas as transações para `SERIALIZABLE` | Evita falhas frequentes de serialização (`40001`) com necessidade de *retry* na aplicação; o `EXCLUDE` e o lock em `usuario` já impedem corrida de horário e *write skew* de limite |
 | `teste_concorrencia.py` detecta se `app_reservas` já existe/tem `EXECUTE` (usando `POSTGRES_USER` antes da Fase 10 e `app_reservas` da Fase 10 em diante) | Fixar `app_reservas` já na Fase 9 (quebrando antes da Fase 10) ou fixar `postgres` para sempre | Permite rodar `teste_concorrencia.py` imediatamente na Fase 9 e automaticamente validar o caminho completo com `app_reservas` após a Fase 10 e na entrega final |
 | Selecionar usuários sem reservas futuras em `teste_concorrencia.py` (sem `DELETE` em `reserva`) | Apagar reservas criadas no teste com `DELETE` | Respeita a restrição `ON DELETE RESTRICT` de `log_reserva → reserva` e mantém a integridade *append-only* da auditoria |
+| Tratar `exclusion_violation OR deadlock_detected` (`23P01` ou `40P01`) em `criar_reserva` devolvendo `RS010` | Lock explícito `FOR UPDATE` na linha da `sala` antes do `INSERT` | Evita bloquear reservas simultâneas em horários **distintos** da mesma sala; quando N sessões inserem juntas no índice GiST do mesmo horário e formam ciclo de espera (`40P01`), o banco aborta as perdedoras e `criar_reserva` traduz exatamente como conflito de horário (`RS010`) |
 
 ## Fase 10 — Segurança (`app_reservas`)
 
@@ -104,13 +105,12 @@ Formato: **decisão** · alternativa considerada · por que esta.
 | Apenas *parsing* de formato (`date.fromisoformat`, `time.fromisoformat`, `int`) em `app/` | Validar limites ou horários na interface antes de chamar o banco | Garante aderência estrita ao enunciado ("casca fina"): qualquer erro (`RS001`–`RS014`) nasce no PostgreSQL e é exibido via `e.diag.message_primary` |
 | `--smoke-test` integrado em `app/main.py` testando CLI + HTTP local em porta efêmera | Testes manuais apenas | Permite validação automatizada e reproduzível na Fase 11 e na entrega final (Fase 12) sem deixar lixo persistido nem porta ocupada |
 
+## Fase 12 — Documentação, testes por fase e congelamento
 
-
-
-
-
-
-
-
+| Decisão | Alternativa considerada | Por que esta |
+|---|---|---|
+| Scripts `scripts/reset.sh` e `scripts/test.sh` montados em `/projeto` como equivalentes oficiais ao `Makefile` | Exigir instalação manual de `make` no Windows (`choco`/`scoop`) | Garante que qualquer colega no Windows PowerShell execute `reset` e `test` nativamente via `docker compose exec -T db` sem dependências extras |
+| Guia dedicado `docs/guia_testes_por_fase.md` com mapa de hashes `git checkout <commit>` | Apenas comandos genéricos da entrega final no `README.md` | Permite "voltar no tempo" para validar qualquer fase isoladamente (ex.: Fase 2 sem seed, Fase 3 vazia, Fase 8 sem índices) com saídas esperadas reais |
+| Congelamento com tag Git anotada/leve `entrega` + `git ls-files .env` na revisão final | Entregar arquivo compactado `.zip` avulso | Preserva todo o histórico incremental de 14 commits auditáveis e garante que nenhuma credencial `.env` foi rastreada |
 
 

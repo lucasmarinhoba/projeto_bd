@@ -118,6 +118,10 @@ TODOS OS TESTES DE CONCORRENCIA PASSARAM.
 
 *(Nota: após a Fase 10, `teste_concorrencia.py` detecta automaticamente a role `app_reservas` e passa a executar todas as threads usando a role restrita da aplicação).*
 
+### Por que `criar_reserva` captura `23P01` e `40P01` na colisão em massa no GiST?
+
+Diferentemente de um índice `UNIQUE` B-tree, a constraint `EXCLUDE USING gist` insere primeiro a tupla na heap/índice e depois varre o índice GiST para checar sobreposições. Quando dezenas de sessões chegam no mesmo microssegundo para o **mesmo horário**, duas ou mais podem inserir no GiST antes de qualquer `COMMIT` e aguardar mútua e ciclicamente o `transactionid` uma da outra, levando o PostgreSQL a detectar o ciclo (`deadlock_detected` — SQLSTATE `40P01`). Em vez de serializar a tabela `sala` inteira (o que bloquearia horários distintos na mesma sala), `criar_reserva` trata `WHEN exclusion_violation OR deadlock_detected THEN` e devolve **`RS010`** de forma uniforme.
+
 ---
 
 ## 4. Conclusão

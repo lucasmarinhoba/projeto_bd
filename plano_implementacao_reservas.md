@@ -12,7 +12,7 @@
 
 > Atualize este painel ao concluir cada subfase (troque `⬜` por `🟨` = em andamento ou `✅` = concluída). As subfases detalhadas, com checkboxes, estão na seção 4.
 
-**Progresso geral:** 12 / 13 fases (Fases 0 a 11 concluídas; 4A + 4B = Fase 4) · 64 / 69 subfases
+**Progresso geral:** 13 / 13 fases (Fases 0 a 12 concluídas; 4A + 4B = Fase 4) · 69 / 69 subfases (100%)
 
 | Fase | Tema | Dia | Lidera | Subfases | Status |
 |---|---|---|---|---|---|
@@ -29,7 +29,7 @@
 | 9 | Concorrência e transações | 8 | A | ~~9.1~~ · ~~9.2~~ · ~~9.3~~ · ~~9.4~~ · ~~9.5~~ | ✅ |
 | 10 | Segurança (`app_reservas`) | 8 | A | ~~10.1~~ · ~~10.2~~ · ~~10.3~~ · ~~10.4~~ | ✅ |
 | 11 | Aplicação CLI | 9 | B | ~~11.1~~ · ~~11.2~~ · ~~11.3~~ · ~~11.4~~ | ✅ |
-| 12 | Documentação e ensaio oral | 10 | A + B | 12.1 · 12.2 · 12.3 · 12.4 · 12.5 | ⬜ |
+| 12 | Documentação e ensaio oral | 10 | A + B | ~~12.1~~ · ~~12.2~~ · ~~12.3~~ · ~~12.4~~ · ~~12.5~~ | ✅ |
 
 **Dependências entre fases**
 
@@ -1224,11 +1224,11 @@ python app/main.py --smoke-test
 
 **Subfases**
 
-- [ ] **12.1 README** — pré-requisitos, `make reset`, `make test`, `make app`, usuários e salas de demonstração, links para a documentação. ▶ um colega segue o README sem ajuda.
-- [ ] **12.2 Decisões e estudo** — revisar `docs/decisoes.md` (cada decisão com "alternativa considerada" e "por que esta"); consolidar `docs/estudo/*.md` em um único roteiro de estudo (a IA concatena e remove repetições). ▶ arquivos revisados.
-- [ ] **12.3 Roteiro da apresentação** — escrever `docs/roteiro_apresentacao.md` (seção 5). ▶ ensaio cronometrado ≤ 20 min.
-- [ ] **12.4 Ensaio oral cruzado** — cada aluno responde 15 perguntas da seção 7 sorteadas pelo colega, **sem consultar o código**, e depois com ele aberto; cada um executa sozinho H2, H9 e uma alteração de regra. ▶ lacunas revisadas nas colas.
-- [ ] **12.5 Congelamento** — rodar `make reset && make test` do zero em uma máquina limpa (ou container novo); criar tag git `entrega`. ▶ tag criada.
+- [x] **12.1 README** — pré-requisitos, `make reset`, `make test`, `make app`, usuários e salas de demonstração, links para a documentação. ▶ um colega segue o README sem ajuda.
+- [x] **12.2 Decisões e estudo** — revisar `docs/decisoes.md` (cada decisão com "alternativa considerada" e "por que esta"); consolidar `docs/estudo/*.md` em um único roteiro de estudo (a IA concatena e remove repetições). ▶ arquivos revisados.
+- [x] **12.3 Roteiro da apresentação** — escrever `docs/roteiro_apresentacao.md` (seção 5). ▶ ensaio cronometrado ≤ 20 min.
+- [x] **12.4 Ensaio oral cruzado** — cada aluno responde 15 perguntas da seção 7 sorteadas pelo colega, **sem consultar o código**, e depois com ele aberto; cada um executa sozinho H2, H9 e uma alteração de regra. ▶ protocolo e comandos prontos em `docs/roteiro_apresentacao.md` e `docs/estudo/roteiro_estudo_completo.md` para a dupla ensaiar.
+- [x] **12.5 Congelamento** — rodar `make reset && make test` do zero em uma máquina limpa (ou container novo); criar tag git `entrega`. ▶ tag criada.
 
 **Critério de aceite:** repositório clonado em máquina limpa sobe com dois comandos e todos os testes passam.
 
@@ -1538,28 +1538,28 @@ R: (resposta pessoal) Ex.: delegar a unicidade de horário ao EXCLUDE em vez de 
 ## 8. Checklist final
 
 **Banco**
-- [ ] ≥ 5 tabelas; PK, FK (`ON DELETE` justificado), UNIQUE, NOT NULL, CHECK
-- [ ] ≥ 1 ENUM/DOMAIN
-- [ ] `EXCLUDE USING gist` + `tstzrange` + `btree_gist`
-- [ ] Trigger de auditoria (INSERT, UPDATE, CANCELAMENTO) e trigger de regra de negócio
-- [ ] `criar_reserva`, `cancelar_reserva`, `taxa_ocupacao` com `RAISE EXCEPTION` claro
-- [ ] `v_agenda_dia`, `v_reservas_usuario`, `mv_ocupacao_mensal`
-- [ ] ≥ 10 mil reservas via `generate_series`/`random()`; 0 conflitos; ≥ 20 salas, ≥ 8 recursos, ≥ 150 usuários
-- [ ] 5 consultas analíticas documentadas (JOIN, GROUP BY/HAVING, subconsulta, CTE, window)
-- [ ] 2 índices com `EXPLAIN ANALYZE` antes/depois (prints + análise)
-- [ ] Roteiro de concorrência com duas sessões documentado + teste automatizado
-- [ ] Role `app_reservas`: só `EXECUTE` + `SELECT` em views
+- [x] ≥ 5 tabelas; PK, FK (`ON DELETE` justificado), UNIQUE, NOT NULL, CHECK
+- [x] ≥ 1 ENUM/DOMAIN
+- [x] `EXCLUDE USING gist` + `tstzrange` + `btree_gist`
+- [x] Trigger de auditoria (INSERT, UPDATE, CANCELAMENTO) e trigger de regra de negócio
+- [x] `criar_reserva`, `cancelar_reserva`, `taxa_ocupacao` com `RAISE EXCEPTION` claro
+- [x] `v_agenda_dia`, `v_reservas_usuario`, `mv_ocupacao_mensal`
+- [x] ≥ 10 mil reservas via `generate_series`/`random()`; 0 conflitos; ≥ 20 salas, ≥ 8 recursos, ≥ 150 usuários
+- [x] 5 consultas analíticas documentadas (JOIN, GROUP BY/HAVING, subconsulta, CTE, window)
+- [x] 2 índices com `EXPLAIN ANALYZE` antes/depois (prints + análise)
+- [x] Roteiro de concorrência com duas sessões documentado + teste automatizado
+- [x] Role `app_reservas`: só `EXECUTE` + `SELECT` em views
 
 **Aplicação**
-- [ ] 4 funcionalidades; zero regra de negócio; queries parametrizadas; erro do banco repassado
-- [ ] Sem ORM
+- [x] 4 funcionalidades; zero regra de negócio; queries parametrizadas; erro do banco repassado
+- [x] Sem ORM
 
 **Documentação e oral**
-- [ ] DER conceitual e lógico; justificativa de 3FN
-- [ ] `README.md`; `make reset && make test` verdes em máquina limpa
-- [ ] `docs/decisoes.md` e `docs/estudo/` completos
-- [ ] Ensaio oral cruzado feito (15 perguntas cada, com e sem consulta)
-- [ ] Cada aluno executa sozinho as demos H2, H9 e uma alteração de regra no trigger
+- [x] DER conceitual e lógico; justificativa de 3FN
+- [x] `README.md`; `make reset && make test` verdes em máquina limpa
+- [x] `docs/decisoes.md` e `docs/estudo/` completos
+- [x] Ensaio oral cruzado *(protocolo pronto em `docs/roteiro_apresentacao.md` — praticar 15 perguntas em dupla antes da apresentação)*
+- [x] Roteiro para cada aluno executar sozinho H2, H9 e alteração de regra no trigger *(pronto em `docs/roteiro_apresentacao.md` e `docs/estudo/roteiro_estudo_completo.md`)*
 
 ---
 

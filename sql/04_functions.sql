@@ -48,7 +48,7 @@ BEGIN
 
   RETURN v_id;
 EXCEPTION
-  WHEN exclusion_violation THEN -- 23P01 disparado pela constraint sem_conflito
+  WHEN exclusion_violation OR deadlock_detected THEN -- 23P01 ou 40P01 na disputa simultanea do EXCLUDE GiST
     RAISE EXCEPTION 'Conflito de horario: a sala % ja esta reservada em parte do periodo pedido.',
       p_sala_id
       USING ERRCODE = 'RS010';
@@ -56,7 +56,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION criar_reserva(bigint, integer, timestamptz, timestamptz, integer, text) IS
-  'Cria reserva validando periodo/passado/cadastros (RS001-RS004), dispara trg_regras_reserva (RS005-RS008) e traduz 23P01 para RS010.';
+  'Cria reserva validando periodo/passado/cadastros (RS001-RS004), dispara trg_regras_reserva (RS005-RS008) e traduz 23P01/40P01 do EXCLUDE GiST para RS010.';
 
 -- =============================================================================
 -- 2. cancelar_reserva: valida existencia, status, inicio e permissao (dono ou ADMIN)
